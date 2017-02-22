@@ -1,0 +1,11 @@
+# Output
+/out
+
+# Intellij
+/.idea
+
+# Gradle
+/gradle
+/.gradle
+/gradlew
+/gradlew.bat
