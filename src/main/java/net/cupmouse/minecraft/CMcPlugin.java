@@ -6,6 +6,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
@@ -13,6 +14,8 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Plugin(id = "cmcplugin", name = "CMcPlugin", version = "alpha-0.1", description = "CMc Minecraft server plugin",
@@ -32,6 +35,7 @@ public class CMcPlugin {
         this.logger = logger;
         this.configDir = configDir;
         this.configCommon = configDir.resolve("common.conf");
+        logger.debug(configCommon.toString());
     }
 
     public Logger getLogger() {
@@ -74,9 +78,20 @@ public class CMcPlugin {
         // plugin fuc init
 
         // 設定の読み込み
-        this.commonConfigLoader = HoconConfigurationLoader.builder().setPath(configCommon).build();
 
-        // 設定をロードする、ファイルがなければ勝手に作られるので考えなくて良い
+        // 設定ファイルが存在しない場合、jarファイル内のアセットフォルダからコピーする。
+        if (!Files.exists(configCommon)) {
+            try {
+                Files.createDirectories(configDir);
+                Sponge.getAssetManager().getAsset(this, "common.conf").get().copyToFile(configCommon);
+            } catch (IOException e) {
+                e.printStackTrace();
+                stopEternally();
+            }
+        }
+
+        // 設定をロードする
+        this.commonConfigLoader = HoconConfigurationLoader.builder().setPath(configCommon).build();
 
         try {
             this.commonConfigNode = commonConfigLoader.load();
@@ -87,6 +102,7 @@ public class CMcPlugin {
             stopEternally();
         }
 
+        logger.info("設定を読み込みました！");
 
     }
 
