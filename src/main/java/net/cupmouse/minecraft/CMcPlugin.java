@@ -1,7 +1,8 @@
 package net.cupmouse.minecraft;
 
 import com.google.inject.Inject;
-import ninja.leaping.configurate.ConfigurationOptions;
+import net.cupmouse.minecraft.data.user.UserDataModule;
+import net.cupmouse.minecraft.db.DatabaseModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -11,12 +12,15 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.scheduler.SpongeExecutorService;
+import org.spongepowered.api.scheduler.Task;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.TimeZone;
 
 @Plugin(id = "cmcplugin", name = "CMcPlugin", version = "alpha-0.1", description = "CMc Minecraft server plugin",
         authors = "Cupmouse", url = "www.cupmouse.net")
@@ -29,13 +33,28 @@ public class CMcPlugin {
     private CommentedConfigurationNode commonConfigNode;
     private HoconConfigurationLoader commonConfigLoader;
 
+    private final List<PluginModule> modules;
+    private final DatabaseModule dbm;
+    private final UserDataModule userm;
+
     @Inject
     public CMcPlugin(Game game, Logger logger, @ConfigDir(sharedRoot = false) Path configDir) {
         this.game = game;
         this.logger = logger;
         this.configDir = configDir;
         this.configCommon = configDir.resolve("common.conf");
-        logger.debug(configCommon.toString());
+
+        PluginModule[] moduleArray = {
+                this.dbm = new DatabaseModule(this),
+                new HeartbeatModule(this),
+                this.userm = new UserDataModule(this)
+        };
+
+        this.modules = Collections.unmodifiableList(Arrays.asList(moduleArray));
+    }
+
+    public Game getGame() {
+        return game;
     }
 
     public Logger getLogger() {
@@ -48,6 +67,14 @@ public class CMcPlugin {
 
     public CommentedConfigurationNode getCommonConfigNode() {
         return commonConfigNode;
+    }
+
+    public DatabaseModule getDbm() {
+        return dbm;
+    }
+
+    public UserDataModule getUserm() {
+        return userm;
     }
 
     public void stopEternally() {
@@ -69,13 +96,29 @@ public class CMcPlugin {
     @Listener
     public void onPreInitialization(GamePreInitializationEvent event) {
         logger.debug("PreInit");
-        // logger init
+        // logger onInitializationProxy
+
+        // サーバーの設定が正常がチェックする
+        if (!TimeZone.getDefault().getID().equals(TimeZone.getTimeZone("Asia/Tokyo").getID())) {
+            // ローカルの時間地域設定がおかしい
+            logger.error("時間地域を[Asia/Tokyo]に設定してください");
+            stopEternally();
+        }
+
+        try {
+            for (PluginModule module : modules) {
+                module.onPreInitializationProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopEternally();
+        }
     }
 
     @Listener
     public void onInitialization(GameInitializationEvent event) {
         logger.debug("Init");
-        // plugin fuc init
+        // plugin fuc onInitializationProxy
 
         // 設定の読み込み
 
@@ -104,6 +147,14 @@ public class CMcPlugin {
 
         logger.info("設定を読み込みました！");
 
+        try {
+            for (PluginModule module : modules) {
+                module.onInitializationProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopEternally();
+        }
     }
 
     // Handling running state event
@@ -111,13 +162,17 @@ public class CMcPlugin {
     @Listener
     public void onAboutToStartServer(GameAboutToStartServerEvent event) {
         logger.debug("ServerStarting");
-        // init for server (worlds are not loaded yet)
+        // onInitializationProxy for server (worlds are not loaded yet)
+
+        for (PluginModule module : modules) {
+            module.onAboutToStartServerProxy();
+        }
     }
 
     @Listener
     public void onStartedServer(GameStartedServerEvent event) {
         logger.debug("ServerStarted");
-        // init for worlds
+        // onInitializationProxy for worlds
     }
 
     @Listener
@@ -130,6 +185,25 @@ public class CMcPlugin {
     public void onStoppedServer(GameStoppedServerEvent event) {
         logger.debug("ServerStopped");
         // no players are connected. world are saved.
+
+        // モジュールを停止
+
+        try {
+            // 逆順で停止
+            for (int i = modules.size() - 1; i >= 0; i--) {
+                modules.get(i).onStoppedServerProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopEternally();
+        }
+
+        try {
+            commonConfigLoader.save(commonConfigNode);
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.warn("設定が保存できませんでした。[共通設定]");
+        }
     }
 
     // Handling stopping state event (may not be called if server has stopped via force quitting or something)
@@ -138,12 +212,5 @@ public class CMcPlugin {
     public void onStopped(GameStoppedEvent event) {
         // called immediate before closing java
         logger.debug("GameStopped");
-
-        try {
-            commonConfigLoader.save(commonConfigNode);
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.warn("設定が保存できませんでした。[共通設定]");
-        }
     }
 }

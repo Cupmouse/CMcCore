@@ -2,8 +2,19 @@ package net.cupmouse.minecraft;
 
 public interface PluginModule {
 
-    void enable();
+    default void onPreInitializationProxy() {
 
-    void disable();
+    }
 
+    default void onInitializationProxy() {
+
+    }
+
+    default void onAboutToStartServerProxy() {
+
+    }
+
+    default void onStoppedServerProxy() {
+
+    }
 }
