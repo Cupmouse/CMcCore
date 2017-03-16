@@ -99,6 +99,7 @@ public class CMcPlugin {
         // logger onInitializationProxy
 
         // サーバーの設定が正常がチェックする
+        // TODO このチェックアホくさい
         if (!TimeZone.getDefault().getID().equals(TimeZone.getTimeZone("Asia/Tokyo").getID())) {
             // ローカルの時間地域設定がおかしい
             logger.error("時間地域を[Asia/Tokyo]に設定してください");
