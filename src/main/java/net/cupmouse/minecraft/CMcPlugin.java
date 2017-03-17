@@ -3,6 +3,7 @@ package net.cupmouse.minecraft;
 import com.google.inject.Inject;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
+import net.cupmouse.minecraft.realtimestream.RealtimeStreamModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ public class CMcPlugin {
     private final List<PluginModule> modules;
     private final DatabaseModule dbm;
     private final UserDataModule userm;
+    private final RealtimeStreamModule rs;
 
     @Inject
     public CMcPlugin(Game game, Logger logger, @ConfigDir(sharedRoot = false) Path configDir) {
@@ -47,7 +49,8 @@ public class CMcPlugin {
         PluginModule[] moduleArray = {
                 this.dbm = new DatabaseModule(this),
                 new HeartbeatModule(this),
-                this.userm = new UserDataModule(this)
+                this.userm = new UserDataModule(this),
+                this.rs = new RealtimeStreamModule(this)
         };
 
         this.modules = Collections.unmodifiableList(Arrays.asList(moduleArray));

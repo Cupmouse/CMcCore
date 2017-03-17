@@ -20,7 +20,7 @@ public class HeartbeatModule implements PluginModule {
 
     private Task heartbeatTask;
     private Task heartbeatIdTask;
-    private Integer heartbeatId;
+    private Integer sessionId;
 
     @Override
     public void onStoppedServerProxy() {
@@ -35,10 +35,10 @@ public class HeartbeatModule implements PluginModule {
             try {
                 connection = plugin.getDbm().getConnection();
                 PreparedStatement prepStmt = connection.prepareStatement(
-                        "UPDATE heartbeat SET last_datetime=?, status='STOPPED' WHERE heartbeat_id=?");
+                        "UPDATE server_session SET last_datetime=?, status='stopped' WHERE session_id=?");
                 prepStmt.setString(1,
                         Utilities.LOCALDATETIME_MYSQL_FORMAT_NONANO.format(LocalDateTime.now()));
-                prepStmt.setInt(2, heartbeatId);
+                prepStmt.setInt(2, sessionId);
 
                 if (prepStmt.executeUpdate() == 1) {
                     connection.commit();
@@ -91,7 +91,7 @@ public class HeartbeatModule implements PluginModule {
 
                 // はじめの時間だけ指定して、レコードを追加
                 PreparedStatement prepStmt = connection.prepareStatement(
-                        "INSERT INTO heartbeat (start_datetime) VALUES (?)");
+                        "INSERT INTO server_session (start_datetime) VALUES (?)");
                 prepStmt.setString(1,
                         Utilities.LOCALDATETIME_MYSQL_FORMAT_NONANO.format(LocalDateTime.now()));
 
@@ -101,14 +101,14 @@ public class HeartbeatModule implements PluginModule {
 
                     Statement statement = connection.createStatement();
 
-                    ResultSet resultSet = statement.executeQuery("SELECT LAST_INSERT_ID() FROM heartbeat");
+                    ResultSet resultSet = statement.executeQuery("SELECT LAST_INSERT_ID() FROM server_session");
 
                     if (resultSet.next()) {
-                        int heartbeatId = resultSet.getInt(1);
+                        int sessionId = resultSet.getInt(1);
 
                         connection.commit();
 
-                        return heartbeatId;
+                        return sessionId;
                     } else {
                         throw new IllegalStateException("LAST_INSERT_ID()の結果が帰ってきません。");
                     }
@@ -149,10 +149,10 @@ public class HeartbeatModule implements PluginModule {
 
                     // 状態＝稼働中にセットし、最終更新日時を更新する。
                     PreparedStatement prepStmt = connection.prepareStatement(
-                            "UPDATE heartbeat SET last_datetime=?, status='RUNNING' WHERE heartbeat_id=?");
+                            "UPDATE server_session SET last_datetime=?, status='running' WHERE session_id=?");
                     prepStmt.setString(1,
                             Utilities.LOCALDATETIME_MYSQL_FORMAT_NONANO.format(LocalDateTime.now()));
-                    prepStmt.setInt(2, heartbeatId);
+                    prepStmt.setInt(2, sessionId);
 
                     if (prepStmt.executeUpdate() == 1) {
                         connection.commit();
@@ -189,14 +189,14 @@ public class HeartbeatModule implements PluginModule {
 
         // IDが取得されたか確認するタスク。（IDの取得はクエリスレッドで行うから。）
         // 上のタスクよりこちらのほうが先に実行される。
-        Task.Builder heartbeatIdGetter = game.getScheduler().createTaskBuilder();
-        heartbeatIdGetter.name("ハートビートIDの取得タスク");
-        heartbeatIdGetter.intervalTicks(1);
-        heartbeatIdGetter.execute(() -> {
+        Task.Builder sessionIdGetter = game.getScheduler().createTaskBuilder();
+        sessionIdGetter.name("ハートビートIDの取得タスク");
+        sessionIdGetter.intervalTicks(1);
+        sessionIdGetter.execute(() -> {
             if (future.isDone() && game.getState() == GameState.SERVER_STARTED) {
                 try {
-                    this.heartbeatId = future.get();
-                    plugin.getLogger().debug("HeartbeatID: " + heartbeatId);
+                    this.sessionId = future.get();
+                    plugin.getLogger().debug("sessionID: " + sessionId);
 
                     heartbeatTask = heartbeatTb.submit(plugin);
 
@@ -206,11 +206,11 @@ public class HeartbeatModule implements PluginModule {
                     e.printStackTrace();
                 }
             } else {
-                plugin.getLogger().debug("HeartbeatID取得待機");
+                plugin.getLogger().debug("sessionID取得待機");
             }
         });
 
         // ハートビートID取得タスクを実行！
-        heartbeatIdTask = heartbeatIdGetter.submit(plugin);
+        heartbeatIdTask = sessionIdGetter.submit(plugin);
     }
 }
