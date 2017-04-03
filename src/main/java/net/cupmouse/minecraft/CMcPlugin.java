@@ -3,17 +3,27 @@ package net.cupmouse.minecraft;
 import com.google.inject.Inject;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
-import net.cupmouse.minecraft.realtimestream.RealtimeStreamModule;
+import net.cupmouse.minecraft.beam.BeamModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.block.TickBlockEvent;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.chat.ChatTypes;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,7 +47,7 @@ public class CMcPlugin {
     private final List<PluginModule> modules;
     private final DatabaseModule dbm;
     private final UserDataModule userm;
-    private final RealtimeStreamModule rs;
+    private final BeamModule rs;
 
     @Inject
     public CMcPlugin(Game game, Logger logger, @ConfigDir(sharedRoot = false) Path configDir) {
@@ -50,7 +60,7 @@ public class CMcPlugin {
                 this.dbm = new DatabaseModule(this),
                 new HeartbeatModule(this),
                 this.userm = new UserDataModule(this),
-                this.rs = new RealtimeStreamModule(this)
+                this.rs = new BeamModule(this)
         };
 
         this.modules = Collections.unmodifiableList(Arrays.asList(moduleArray));
@@ -216,5 +226,48 @@ public class CMcPlugin {
     public void onStopped(GameStoppedEvent event) {
         // called immediate before closing java
         logger.debug("GameStopped");
+    }
+
+    @Listener
+    public void onTick(TickBlockEvent.Scheduled event) {
+        logger.info(event.getTargetBlock().getState().toString());
+
+        BlockSnapshot targetBlock = event.getTargetBlock();
+        BlockType blockType = targetBlock.getState().getType();
+
+        // 無効にする
+        // リピーター/レッドストーントーチ/
+        // トーチを無効にする
+        // ピストンを無効にする
+        if (blockType == BlockTypes.UNPOWERED_REPEATER
+                || blockType == BlockTypes.UNPOWERED_COMPARATOR
+                || blockType == BlockTypes.REDSTONE_TORCH) {
+
+            // 近くのプレイヤーに通知する
+            targetBlock.getLocation().ifPresent(this::notifyNearbyPlayer);
+            event.setCancelled(true);
+        }
+    }
+
+    @Listener
+    public void onBlockChange(ChangeBlockEvent.Pre event) {
+        // TODO Source Locatable.classは良くない
+
+        Location<World> location = event.getLocations().get(0);
+        BlockType type = location.getBlock().getType();
+
+        if (type == BlockTypes.PISTON || type == BlockTypes.STICKY_PISTON) {
+            notifyNearbyPlayer(location);
+            event.setCancelled(true);
+        }
+    }
+
+    private void notifyNearbyPlayer(Location<World> location) {
+        for (Player player : location.getExtent().getPlayers()) {
+            if (player.getLocation().getPosition().distanceSquared(location.getPosition()) <= 100) {
+                player.sendMessage(ChatTypes.SYSTEM,
+                        Text.of(TextColors.YELLOW, "⚠レッドストーン関連の使用は制限されています。"));
+            }
+        }
     }
 }
