@@ -8,16 +8,18 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
-import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.net.InetAddress;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
 public class UserDataModule implements PluginModule {
 
@@ -70,11 +72,15 @@ public class UserDataModule implements PluginModule {
 
                 // 第一段階：ユーザーIDを取得する
                 int userId;
+                // アドレスを記録するので取っておく
+                InetAddress address = event.getConnection().getAddress().getAddress();
                 // 名前も記録するので取っておく
                 Optional<String> optional = event.getProfile().getName();
 
                 PreparedStatement prepStmt =
-                        connection.prepareStatement("SELECT user_id, name FROM users WHERE uuid = ?");
+                        connection.prepareStatement(
+                                "SELECT user_id, name, address AS address FROM users " +
+                                        "WHERE uuid = ?");
                 prepStmt.setBytes(1, Utilities.convertUUIDtoBytes(uniqueId));
                 ResultSet resultSet = prepStmt.executeQuery();
 
@@ -82,6 +88,7 @@ public class UserDataModule implements PluginModule {
                     // ユーザーが存在したのでそのIDを返す
                     userId = resultSet.getInt(1);
                     String recordedName = resultSet.getString(2);
+                    byte[] recordedAddressBytes = resultSet.getBytes(3);
 
                     prepStmt.close();
 
@@ -91,10 +98,10 @@ public class UserDataModule implements PluginModule {
                     if (optional.isPresent()) {
                         String playerName = optional.get();
 
-                        plugin.getLogger().debug("rec:"+ recordedName +" name:"+ playerName);
-
                         // equalsを反対にするとぬるぽ
                         if (!playerName.equals(recordedName)) {
+                            plugin.getLogger().debug("rec:"+ recordedName +" name:"+ playerName);
+
                             // 名前の更新をする
                             PreparedStatement prepStmt2 = connection.prepareStatement(
                                     "UPDATE users SET name = ? WHERE user_id = ?");
@@ -106,15 +113,37 @@ public class UserDataModule implements PluginModule {
                             prepStmt2.close();
                         }
                     }
+
+                    InetAddress recordedAddress = null;
+
+                    // TODO データベースのADDRESSが不正な長さのバイナリだと、InetAddress.getByAddressでつまずく
+                    // java.net.UnknownHostException: addr is of illegal length
+                    // 接続元変更確認
+                    if (recordedAddressBytes == null
+                            || !address.equals(recordedAddress = InetAddress.getByAddress(recordedAddressBytes))) {
+                        plugin.getLogger().debug("rec:"+ recordedAddress +" addr:"+ address);
+
+                        PreparedStatement prepStmt2 = connection.prepareStatement(
+                                "UPDATE users SET address = ? WHERE user_id = ?");
+                        prepStmt2.setBytes(1, address.getAddress());
+                        prepStmt2.setInt(2, userId);
+
+                        if (prepStmt2.executeUpdate() != 1) {
+                            throw new IllegalStateException("アドレスの更新ができませんでした");
+                        }
+
+                        prepStmt2.close();
+                    }
                 } else {
                     // ユーザーが存在しないので作成する
                     // まずは前のPrepstmtをクローズ
                     prepStmt.close();
 
                     PreparedStatement prepStmt2 = connection.prepareStatement(
-                            "INSERT INTO users (uuid, name) VALUES (?, ?)");
+                            "INSERT INTO users (uuid, name, address) VALUES (?, ?, ?)");
                     prepStmt2.setBytes(1, Utilities.convertUUIDtoBytes(uniqueId));
-                    prepStmt2.setString(2, optional.isPresent() ? optional.get() : null);
+                    prepStmt2.setString(2, optional.orElse(null));
+                    prepStmt2.setBytes(3, address.getAddress());
 
                     // 新しくテーブルにユーザーを追加するが、変更された行が1行でないと正常に完了していない。
                     if (prepStmt2.executeUpdate() == 1) {

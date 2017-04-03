@@ -7,9 +7,7 @@ import org.spongepowered.api.entity.weather.Lightning;
 import org.spongepowered.api.statistic.achievement.Achievement;
 import org.spongepowered.api.text.Text;
 
-import static net.cupmouse.minecraft.beam.BeamDataUtil.writeLocation;
-import static net.cupmouse.minecraft.beam.BeamDataUtil.writePlayer;
-import static net.cupmouse.minecraft.beam.BeamDataUtil.writeUTF8ShortPrefixed;
+import static net.cupmouse.minecraft.beam.BeamDataUtil.*;
 
 public final class BeamDataFactory {
 
@@ -47,6 +45,7 @@ public final class BeamDataFactory {
         writeDataId(byteBuf, DataType.DIED);
 
         writePlayer(byteBuf, player);
+        writeLocation(byteBuf, player.getLocation());
 
         return byteBuf;
     }
@@ -62,6 +61,7 @@ public final class BeamDataFactory {
     public static ByteBuf createLightningStrike(ByteBuf byteBuf, Lightning lightning) {
         writeDataId(byteBuf, DataType.LIGHTNING_STRIKE);
 
+        // TODO
         writeLocation(byteBuf, lightning.getLocation());
 
         return byteBuf;

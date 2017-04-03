@@ -18,6 +18,8 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.achievement.GrantAchievementEvent;
 import org.spongepowered.api.event.action.FishingEvent;
 import org.spongepowered.api.event.action.LightningEvent;
+import org.spongepowered.api.event.entity.DestructEntityEvent;
+import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.message.MessageChannelEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.scheduler.Task;
@@ -115,12 +117,19 @@ public class BeamModule implements PluginModule {
     }
 
     @Listener
-    public void onChat(MessageChannelEvent.Chat event) {
-        event.getCause().first(Player.class).ifPresent(player -> {
+    public void onPlayerDied(DestructEntityEvent.Death event) {
+        if (event.getTargetEntity() instanceof Player) {
             ByteBuf byteBuf = channel.alloc().buffer();
 
-            queue(createChat(byteBuf, player, event.getRawMessage()));
-        });
+            queue(createDied(byteBuf, (Player) event.getTargetEntity()));
+        }
+    }
+
+    @Listener
+    public void onChat(MessageChannelEvent.Chat event, @First Player player) {
+        ByteBuf byteBuf = channel.alloc().buffer();
+
+        queue(createChat(byteBuf, player, event.getRawMessage()));
     }
 
     @Listener

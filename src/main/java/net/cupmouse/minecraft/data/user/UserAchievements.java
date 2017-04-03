@@ -2,7 +2,6 @@ package net.cupmouse.minecraft.data.user;
 
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.text.LiteralText;
 import org.spongepowered.api.text.Text;
 
 public enum UserAchievements {

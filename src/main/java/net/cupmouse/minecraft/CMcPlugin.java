@@ -1,9 +1,9 @@
 package net.cupmouse.minecraft;
 
 import com.google.inject.Inject;
+import net.cupmouse.minecraft.beam.BeamModule;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
-import net.cupmouse.minecraft.beam.BeamModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -15,9 +15,12 @@ import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.TickBlockEvent;
 import org.spongepowered.api.event.game.state.*;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.event.server.ClientPingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatTypes;
@@ -229,6 +232,20 @@ public class CMcPlugin {
     }
 
     @Listener
+    public void onClientPingServer(ClientPingServerEvent event) {
+        event.getResponse().setDescription(Text.of(""));
+    }
+
+    @Listener(order = Order.DEFAULT)
+    public void onLogin(ClientConnectionEvent.Join event) {
+        Player targetEntity = event.getTargetEntity();
+
+//        DataTransactionResult cupmouse = targetEntity.offer(Keys.DISPLAY_NAME, Text.of("Cupmouse"));
+//        logger.info(cupmouse.toString());
+//        logger.info(targetEntity.get(Keys.DISPLAY_NAME).get().toString());
+    }
+
+    @Listener
     public void onTick(TickBlockEvent.Scheduled event) {
         logger.info(event.getTargetBlock().getState().toString());
 
@@ -251,8 +268,6 @@ public class CMcPlugin {
 
     @Listener
     public void onBlockChange(ChangeBlockEvent.Pre event) {
-        // TODO Source Locatable.classは良くない
-
         Location<World> location = event.getLocations().get(0);
         BlockType type = location.getBlock().getType();
 
