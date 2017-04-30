@@ -62,6 +62,7 @@ public class CMcPlugin {
         PluginModule[] moduleArray = {
                 this.dbm = new DatabaseModule(this),
                 new HeartbeatModule(this),
+                new PongPingModule(this),
                 this.userm = new UserDataModule(this),
                 this.rs = new BeamModule(this)
         };
@@ -231,11 +232,6 @@ public class CMcPlugin {
         logger.debug("GameStopped");
     }
 
-    @Listener
-    public void onClientPingServer(ClientPingServerEvent event) {
-        event.getResponse().setDescription(Text.of(""));
-    }
-
     @Listener(order = Order.DEFAULT)
     public void onLogin(ClientConnectionEvent.Join event) {
         Player targetEntity = event.getTargetEntity();
@@ -246,7 +242,7 @@ public class CMcPlugin {
     }
 
     @Listener
-    public void onTick(TickBlockEvent.Scheduled event) {
+    public void onScheduledBlockTick(TickBlockEvent.Scheduled event) {
         logger.info(event.getTargetBlock().getState().toString());
 
         BlockSnapshot targetBlock = event.getTargetBlock();
@@ -267,7 +263,7 @@ public class CMcPlugin {
     }
 
     @Listener
-    public void onBlockChange(ChangeBlockEvent.Pre event) {
+    public void onBlockPreChange(ChangeBlockEvent.Pre event) {
         Location<World> location = event.getLocations().get(0);
         BlockType type = location.getBlock().getType();
 
