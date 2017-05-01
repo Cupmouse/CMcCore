@@ -5,10 +5,7 @@
 /.idea
 
 # Gradle
-/gradle
 /.gradle
-/gradlew
-/gradlew.bat
 
 # Security reason
 *.sql
