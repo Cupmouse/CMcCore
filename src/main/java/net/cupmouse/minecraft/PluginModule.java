@@ -14,6 +14,10 @@ public interface PluginModule {
 
     }
 
+    default void onServerStartingProxy() {
+
+    }
+
     default void onStoppedServerProxy() {
 
     }

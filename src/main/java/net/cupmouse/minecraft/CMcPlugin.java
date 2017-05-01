@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import net.cupmouse.minecraft.beam.BeamModule;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
+import net.cupmouse.minecraft.worlds.WorldsModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ public class CMcPlugin {
                 new HeartbeatModule(this),
                 new PongPingModule(this),
                 this.userm = new UserDataModule(this),
+                new WorldsModule(this),
                 this.rs = new BeamModule(this)
         };
 
@@ -136,7 +138,6 @@ public class CMcPlugin {
     @Listener
     public void onInitialization(GameInitializationEvent event) {
         logger.debug("Init");
-        // plugin fuc onInitializationProxy
 
         // 設定の読み込み
 
@@ -165,6 +166,7 @@ public class CMcPlugin {
 
         logger.info("設定を読み込みました！");
 
+        // plugin fuc onInitializationProxy
         try {
             for (PluginModule module : modules) {
                 module.onInitializationProxy();

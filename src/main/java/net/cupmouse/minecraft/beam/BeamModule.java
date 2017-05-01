@@ -10,6 +10,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import net.cupmouse.minecraft.CMcPlugin;
 import net.cupmouse.minecraft.PluginModule;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
@@ -32,6 +33,7 @@ public class BeamModule implements PluginModule {
     private Channel channel;
     private boolean stop;
     private Task task;
+    private boolean enabled;
 
     public BeamModule(CMcPlugin plugin) {
         this.plugin = plugin;
@@ -39,6 +41,19 @@ public class BeamModule implements PluginModule {
 
     @Override
     public void onInitializationProxy() {
+        CommentedConfigurationNode nodeBeam = this.plugin.getCommonConfigNode().getNode("beam");
+
+        if (!nodeBeam.getNode("enabled").getBoolean()) {
+            enabled = false;
+            return;
+        }
+
+        enabled = true;
+
+        String url = nodeBeam.getNode("url").getString();
+        int port = nodeBeam.getNode("port").getInt();
+
+        // TODO beamの接続先設定
 
         task = plugin.getGame().getScheduler().createTaskBuilder().async()
                 .execute(() -> {
@@ -57,7 +72,7 @@ public class BeamModule implements PluginModule {
                                 }
                             });
 
-                            channel = bs.connect("localhost", 35324).sync().channel();
+                            channel = bs.connect(url, port).sync().channel();
 
                             channel.closeFuture().sync();
                         } catch (Exception e) {
@@ -81,7 +96,12 @@ public class BeamModule implements PluginModule {
 
     @Override
     public void onStoppedServerProxy() {
+        if (!enabled) {
+            return;
+        }
+
         plugin.getLogger().info("リアルタイムストリームを終了します");
+
         try {
             stop = true;
             channel.close();

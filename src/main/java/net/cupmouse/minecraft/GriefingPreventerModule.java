@@ -32,6 +32,12 @@ public class GriefingPreventerModule implements PluginModule {
         this.plugin = plugin;
     }
 
+    @Override
+    public void onInitializationProxy() {
+        // リスナを登録する
+        this.plugin.getGame().getEventManager().registerListeners(plugin, this);
+    }
+
     @Listener
     public void onScheduledBlockTick(TickBlockEvent.Scheduled event) {
         // このリスナはレッドストーン関連の稼働を検知して、キャンセルする。
@@ -75,6 +81,7 @@ public class GriefingPreventerModule implements PluginModule {
         }
     }
 
+    @Listener
     private void onChestOpen(InteractInventoryEvent.Open event) {
         if (event.getTargetInventory().getArchetype() == InventoryArchetypes.CHEST) {
             plugin.getLogger().debug("poing");
