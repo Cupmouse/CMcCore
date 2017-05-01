@@ -240,45 +240,4 @@ public class CMcPlugin {
 //        logger.info(cupmouse.toString());
 //        logger.info(targetEntity.get(Keys.DISPLAY_NAME).get().toString());
     }
-
-    @Listener
-    public void onScheduledBlockTick(TickBlockEvent.Scheduled event) {
-        logger.info(event.getTargetBlock().getState().toString());
-
-        BlockSnapshot targetBlock = event.getTargetBlock();
-        BlockType blockType = targetBlock.getState().getType();
-
-        // 無効にする
-        // リピーター/レッドストーントーチ/
-        // トーチを無効にする
-        // ピストンを無効にする
-        if (blockType == BlockTypes.UNPOWERED_REPEATER
-                || blockType == BlockTypes.UNPOWERED_COMPARATOR
-                || blockType == BlockTypes.REDSTONE_TORCH) {
-
-            // 近くのプレイヤーに通知する
-            targetBlock.getLocation().ifPresent(this::notifyNearbyPlayer);
-            event.setCancelled(true);
-        }
-    }
-
-    @Listener
-    public void onBlockPreChange(ChangeBlockEvent.Pre event) {
-        Location<World> location = event.getLocations().get(0);
-        BlockType type = location.getBlock().getType();
-
-        if (type == BlockTypes.PISTON || type == BlockTypes.STICKY_PISTON) {
-            notifyNearbyPlayer(location);
-            event.setCancelled(true);
-        }
-    }
-
-    private void notifyNearbyPlayer(Location<World> location) {
-        for (Player player : location.getExtent().getPlayers()) {
-            if (player.getLocation().getPosition().distanceSquared(location.getPosition()) <= 100) {
-                player.sendMessage(ChatTypes.SYSTEM,
-                        Text.of(TextColors.YELLOW, "⚠レッドストーン関連の使用は制限されています。"));
-            }
-        }
-    }
 }

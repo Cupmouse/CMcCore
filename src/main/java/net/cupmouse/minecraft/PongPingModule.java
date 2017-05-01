@@ -22,10 +22,13 @@ public class PongPingModule implements PluginModule {
 
     @Listener
     public void onClientPingServer(ClientPingServerEvent event) {
+        // TODO ここで他スレッドを待機することになるので、もしデータベースのクエリが満ぱんだと処理されずに詰まる！
+
         Future<String> future = plugin.getDbm().queueQueryTask(() -> {
             Connection connection = plugin.getDbm().getConnection();
 
-            PreparedStatement prepStmt = connection.prepareStatement("SELECT name FROM users WHERE address = ?");
+            PreparedStatement prepStmt = connection.prepareStatement(
+                    "SELECT name FROM users WHERE address = ?");
             prepStmt.setBytes(1, event.getClient().getAddress().getAddress().getAddress());
 
             ResultSet resultSet = prepStmt.executeQuery();
@@ -45,12 +48,12 @@ public class PongPingModule implements PluginModule {
         }
 
         event.getResponse().setDescription(Text.of("CMc Minecraft Server", "\n", "Hi, ", name, "!"));
-        event.getResponse().setFavicon(Favicon);
 
     }
 
     @Override
     public void onInitializationProxy() {
-        plugin.getGame().getRegistry().loadFavicon();
+        // TODO 今後、ファビコンを変えたくなったら変える
+//        plugin.getGame().getRegistry().loadFavicon();
     }
 }
