@@ -40,6 +40,9 @@ public class DatabaseModule implements PluginModule {
         int prepStmtCacheSqlLimit = configOptionNode.getNode("prep_stmt_cache_sql_limit").getInt();
         int maxPoolSize = configOptionNode.getNode("max_pool_size").getInt();
         int threads = configOptionNode.getNode("threads").getInt();
+        int connectionTimeout = configOptionNode.getNode("connection_timeout").getInt();
+        int idleTimeout = configDatabaseNode.getNode("idle_timeout").getInt();
+        int minimumIdle = configDatabaseNode.getNode("minimum_idle").getInt();
 
         // HikariCPをセットアップ
         HikariConfig hc = new HikariConfig();
@@ -48,11 +51,11 @@ public class DatabaseModule implements PluginModule {
         // プールのサイズ
         hc.setMaximumPoolSize(maxPoolSize);
         // 接続時のタイムアウト
-        hc.setConnectionTimeout(2000);
+        hc.setConnectionTimeout(connectionTimeout);
         // アイドルのタイムアウト
-        hc.setIdleTimeout(30000);
+        hc.setIdleTimeout(idleTimeout);
         // アイドル状態のコネクションの数
-        hc.setMinimumIdle(1);
+        hc.setMinimumIdle(minimumIdle);
         // 設定を適用
         hc.setJdbcUrl(url);
         hc.setUsername(user);

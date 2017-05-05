@@ -1,2 +1,6 @@
 rootProject.name = 'cmcplugin'
+includeFlat 'CMcGamePlugin'
+findProject(':CMcGamePlugin')?.name = 'cmcgameplugin'
+includeFlat 'CMcSurvivalPlugin'
+findProject(':CMcSurvivalPlugin')?.name = 'cmcsurvivalplugin'
 
