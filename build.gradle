@@ -1,5 +1,15 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+    }
+}
+
 plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
 group 'net.cupmouse.minecraft'
@@ -8,6 +18,17 @@ version 'alpha-0.1'
 apply plugin: 'java'
 
 sourceCompatibility = 1.8
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+shadowJar {
+    baseName = 'cmcplugin'
+    dependencies {
+        exclude(dependency(group: 'org.spongepowered', name: 'spongeapi', version: '5.0.0'))
+    }
+}
 
 repositories {
     mavenCentral()

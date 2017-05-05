@@ -47,6 +47,12 @@ public class DatabaseModule implements PluginModule {
 //        hc.setDataSourceClassName("org.mariadb.jdbc.MariaDbDataSource");
         // プールのサイズ
         hc.setMaximumPoolSize(maxPoolSize);
+        // 接続時のタイムアウト
+        hc.setConnectionTimeout(2000);
+        // アイドルのタイムアウト
+        hc.setIdleTimeout(30000);
+        // アイドル状態のコネクションの数
+        hc.setMinimumIdle(1);
         // 設定を適用
         hc.setJdbcUrl(url);
         hc.setUsername(user);

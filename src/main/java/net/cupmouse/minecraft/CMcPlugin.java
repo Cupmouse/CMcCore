@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 @Plugin(id = "cmcplugin", name = "CMcPlugin", version = "alpha-0.1", description = "CMc Minecraft server plugin",
-        authors = "Cupmouse", url = "www.cupmouse.net")
+        authors = "Cupmouse", url = "http://www.cupmouse.net/")
 public class CMcPlugin {
 
     private final Game game;
