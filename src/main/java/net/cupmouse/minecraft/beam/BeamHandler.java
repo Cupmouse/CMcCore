@@ -2,26 +2,20 @@ package net.cupmouse.minecraft.beam;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.cupmouse.minecraft.CMcPlugin;
+import net.cupmouse.minecraft.CMcCore;
 
 import java.io.IOException;
 
 public class BeamHandler extends ChannelInboundHandlerAdapter {
 
-    private CMcPlugin plugin;
-
-    public BeamHandler(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        plugin.getLogger().info("ストリーム接続");
+        CMcCore.getLogger().info("ストリーム接続");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        plugin.getLogger().info("ストリーム切断");
+        CMcCore.getLogger().info("ストリーム切断");
     }
 
     @Override

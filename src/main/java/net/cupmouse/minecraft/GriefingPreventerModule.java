@@ -1,5 +1,6 @@
 package net.cupmouse.minecraft;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
@@ -8,7 +9,6 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.TickBlockEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
-import org.spongepowered.api.item.inventory.InventoryArchetype;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatTypes;
@@ -26,16 +26,16 @@ public class GriefingPreventerModule implements PluginModule {
 
     public static final Text TEXT_REDSTONE_RESTRICTED =
             Text.of(TextColors.YELLOW,"⚠レッドストーン関連の使用は制限されています。");
-    private final CMcPlugin plugin;
+    private final CMcCore plugin;
 
-    public GriefingPreventerModule(CMcPlugin plugin) {
+    public GriefingPreventerModule(CMcCore plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public void onInitializationProxy() {
         // リスナを登録する
-        this.plugin.getGame().getEventManager().registerListeners(plugin, this);
+        Sponge.getEventManager().registerListeners(plugin, this);
     }
 
     @Listener

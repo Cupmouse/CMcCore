@@ -8,7 +8,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import net.cupmouse.minecraft.CMcPlugin;
+import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -29,19 +29,14 @@ import static net.cupmouse.minecraft.beam.BeamDataFactory.*;
 
 public class BeamModule implements PluginModule {
 
-    private CMcPlugin plugin;
     private Channel channel;
     private boolean stop;
     private Task task;
     private boolean enabled;
 
-    public BeamModule(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public void onInitializationProxy() {
-        CommentedConfigurationNode nodeBeam = this.plugin.getCommonConfigNode().getNode("beam");
+        CommentedConfigurationNode nodeBeam = CMcCore.getCommonConfigNode().getNode("beam");
 
         if (!nodeBeam.getNode("enabled").getBoolean()) {
             enabled = false;
@@ -55,7 +50,7 @@ public class BeamModule implements PluginModule {
 
         // TODO beamの接続先設定
 
-        task = plugin.getGame().getScheduler().createTaskBuilder().async()
+        task = Sponge.getScheduler().createTaskBuilder().async()
                 .execute(() -> {
                     while (!stop) {
                         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -68,7 +63,7 @@ public class BeamModule implements PluginModule {
                             bs.handler(new ChannelInitializer<SocketChannel>() {
                                 @Override
                                 protected void initChannel(SocketChannel ch) throws Exception {
-                                    ch.pipeline().addLast(new BeamHandler(plugin));
+                                    ch.pipeline().addLast(new BeamHandler());
                                 }
                             });
 
@@ -88,10 +83,10 @@ public class BeamModule implements PluginModule {
                         }
                     }
                 })
-                .submit(plugin);
+                .submit(CMcCore.getPlugin());
 
-        Sponge.getGame().getEventManager().registerListeners(plugin, this);
-        plugin.getLogger().info("リアルタイムストリームを開始しました！");
+        Sponge.getEventManager().registerListeners(CMcCore.getPlugin(), this);
+        CMcCore.getLogger().info("リアルタイムストリームを開始しました！");
     }
 
     @Override
@@ -100,7 +95,7 @@ public class BeamModule implements PluginModule {
             return;
         }
 
-        plugin.getLogger().info("リアルタイムストリームを終了します");
+        CMcCore.getLogger().info("リアルタイムストリームを終了します");
 
         try {
             stop = true;

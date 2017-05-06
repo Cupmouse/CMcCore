@@ -1,6 +1,6 @@
 package net.cupmouse.minecraft.data.user;
 
-import net.cupmouse.minecraft.CMcPlugin;
+import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
 import net.cupmouse.minecraft.Utilities;
 import org.spongepowered.api.Sponge;
@@ -25,11 +25,6 @@ public class UserDataModule implements PluginModule {
 
     // オンラインのプレイヤーをキャッシュする
     private final Map<UUID, OnlineUser> onlineCached = new WeakHashMap<>();
-    private final CMcPlugin plugin;
-
-    public UserDataModule(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     public OnlineUser getOnlineUser(Player player) {
         OnlineUser onlineUser;
@@ -58,13 +53,13 @@ public class UserDataModule implements PluginModule {
         // 時間はこのスレッドで取る
         LocalDateTime loginDatetime = LocalDateTime.now();
 
-        Future<Long> future = plugin.getDbm().queueQueryTask(() -> {
+        Future<Long> future = CMcCore.getDbm().queueQueryTask(() -> {
             // クエリスレッドで実行される
 
             Connection connection = null;
 
             try {
-                connection = plugin.getDbm().getConnection();
+                connection = CMcCore.getDbm().getConnection();
 
                 // 第一段階と第二段階がある。
                 // どちらかに失敗するとユーザー情報取り込み失敗としてコミットせず、ロールバックし、キャッシュしない。
@@ -100,7 +95,7 @@ public class UserDataModule implements PluginModule {
 
                         // equalsを反対にするとぬるぽ
                         if (!playerName.equals(recordedName)) {
-                            plugin.getLogger().debug("rec:"+ recordedName +" name:"+ playerName);
+                            CMcCore.getLogger().debug("rec:"+ recordedName +" name:"+ playerName);
 
                             // 名前の更新をする
                             PreparedStatement prepStmt2 = connection.prepareStatement(
@@ -121,7 +116,7 @@ public class UserDataModule implements PluginModule {
                     // 接続元変更確認
                     if (recordedAddressBytes == null
                             || !address.equals(recordedAddress = InetAddress.getByAddress(recordedAddressBytes))) {
-                        plugin.getLogger().debug("rec:"+ recordedAddress +" addr:"+ address);
+                        CMcCore.getLogger().debug("rec:"+ recordedAddress +" addr:"+ address);
 
                         PreparedStatement prepStmt2 = connection.prepareStatement(
                                 "UPDATE users SET address = ? WHERE user_id = ?");
@@ -229,7 +224,7 @@ public class UserDataModule implements PluginModule {
             int userId = (int) (aLong >>> 32);
             int sessionId = aLong.intValue();
 
-            UserDataFetcher userDataFetcher = new UserDataFetcher(plugin, userId);
+            UserDataFetcher userDataFetcher = new UserDataFetcher(userId);
             OnlineUser onlineUser = new OnlineUser(sessionId, userDataFetcher);
 
             synchronized (onlineCached) {
@@ -273,11 +268,11 @@ public class UserDataModule implements PluginModule {
         Future<Boolean> future = onlineUser.getDataFetcher().earnAchievementIfNot(UserAchievements.FIRST_LOGIN);
 
         // あとでチェック
-        this.plugin.getGame().getScheduler().createTaskBuilder().intervalTicks(1).execute(task -> {
-            plugin.getLogger().debug("CHK ACHIVEMENT");
+        Sponge.getScheduler().createTaskBuilder().intervalTicks(1).execute(task -> {
+            CMcCore.getLogger().debug("CHK ACHIVEMENT");
 
             if (future.isDone()) {
-                plugin.getLogger().debug("DONE");
+                CMcCore.getLogger().debug("DONE");
                 try {
                     Boolean aBoolean = future.get();
 
@@ -292,7 +287,7 @@ public class UserDataModule implements PluginModule {
 
                 task.cancel();
             }
-        }).submit(plugin);
+        }).submit(CMcCore.getPlugin());
     }
 
 
@@ -306,17 +301,17 @@ public class UserDataModule implements PluginModule {
         }
 
         if (removed == null) {
-            this.plugin.getLogger().info("ユーザーがキャッシュされていません。: " + uniqueId);
+            CMcCore.getLogger().info("ユーザーがキャッシュされていません。: " + uniqueId);
         } else {
             // キャッシュにあるなら、切断時刻の記録は試行する。
 
             LocalDateTime disconnectDatetime = LocalDateTime.now();
 
             // セッションを終了する。
-            this.plugin.getDbm().queueQueryTask(() -> {
+            CMcCore.getDbm().queueQueryTask(() -> {
                 Connection connection = null;
                 try {
-                    connection = this.plugin.getDbm().getConnection();
+                    connection = CMcCore.getDbm().getConnection();
 
                     // 切断時刻の記録
                     PreparedStatement prepStmt = connection.prepareStatement(
@@ -379,7 +374,7 @@ public class UserDataModule implements PluginModule {
     @Override
     public void onInitializationProxy() {
         // このインスタンスをリスナとして登録する
-        Sponge.getGame().getEventManager().registerListeners(plugin, this);
-        this.plugin.getLogger().info("ユーザー機能を有効化しました！");
+        Sponge.getEventManager().registerListeners(CMcCore.getPlugin(), this);
+        CMcCore.getLogger().info("ユーザー機能を有効化しました！");
     }
 }

@@ -3,6 +3,7 @@ package net.cupmouse.minecraft;
 import net.cupmouse.minecraft.db.DatabaseModule;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.GameState;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.Task;
 
 import java.sql.*;
@@ -11,12 +12,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class HeartbeatModule implements PluginModule {
-
-    private CMcPlugin plugin;
-
-    public HeartbeatModule(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     private Task heartbeatTask;
     private Task heartbeatIdTask;
@@ -30,10 +25,10 @@ public class HeartbeatModule implements PluginModule {
         // この関数を抜けると、ハートビートが更新される前にJVMが終了されてしまうので、この処理が終わるまで待機する。
         // 仮に、致命的なエラーが発生してこの関数で止まってしまっても、ゲームのデータは安全に保存されている。
         // TODO ただしプラグインは違うよ
-        Future<Object> future = plugin.getDbm().queueQueryTask(() -> {
+        Future<Object> future = CMcCore.getDbm().queueQueryTask(() -> {
             Connection connection = null;
             try {
-                connection = plugin.getDbm().getConnection();
+                connection = CMcCore.getDbm().getConnection();
                 PreparedStatement prepStmt = connection.prepareStatement(
                         "UPDATE server_session SET last_datetime=?, status='stopped' WHERE session_id=?");
                 prepStmt.setString(1,
@@ -79,7 +74,7 @@ public class HeartbeatModule implements PluginModule {
     @Override
     public void onAboutToStartServerProxy() {
 
-        DatabaseModule dbm = plugin.getDbm();
+        DatabaseModule dbm = CMcCore.getDbm();
 
         // Heartbeat準備(Heartbeatレコードを追加し、そのHeartbeatIdを取得する)
         Future<Integer> future = dbm.queueQueryTask(() -> {
@@ -135,7 +130,7 @@ public class HeartbeatModule implements PluginModule {
             }
         });
 
-        Game game = plugin.getGame();
+        Game game = Sponge.getGame();
 
         // これから作られるタスクは、ID取得タスクが、IDを取得したことを確認したあとにスケジュールされ、実行される。
         Task.Builder heartbeatTb = game.getScheduler().createTaskBuilder();
@@ -196,9 +191,9 @@ public class HeartbeatModule implements PluginModule {
             if (future.isDone() && game.getState() == GameState.SERVER_STARTED) {
                 try {
                     this.sessionId = future.get();
-                    plugin.getLogger().debug("sessionID: " + sessionId);
+                    CMcCore.getLogger().debug("sessionID: " + sessionId);
 
-                    heartbeatTask = heartbeatTb.submit(plugin);
+                    heartbeatTask = heartbeatTb.submit(CMcCore.getPlugin());
 
                     // このタスクは再生終了後に自動削除されます ビー！
                     heartbeatIdTask.cancel();
@@ -206,11 +201,11 @@ public class HeartbeatModule implements PluginModule {
                     e.printStackTrace();
                 }
             } else {
-                plugin.getLogger().debug("sessionID取得待機");
+                CMcCore.getLogger().debug("sessionID取得待機");
             }
         });
 
         // ハートビートID取得タスクを実行！
-        heartbeatIdTask = sessionIdGetter.submit(plugin);
+        heartbeatIdTask = sessionIdGetter.submit(CMcCore.getPlugin());
     }
 }

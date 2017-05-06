@@ -2,7 +2,7 @@ package net.cupmouse.minecraft.db;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import net.cupmouse.minecraft.CMcPlugin;
+import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 
@@ -12,13 +12,8 @@ import java.util.concurrent.*;
 
 public class DatabaseModule implements PluginModule {
 
-    private CMcPlugin plugin;
     private HikariDataSource dataSource;
     private ExecutorService executor;
-
-    public DatabaseModule(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     public <T> Future<T> queueQueryTask(Callable<T> callable) {
         return executor.submit(callable);
@@ -31,7 +26,7 @@ public class DatabaseModule implements PluginModule {
     @Override
     public void onInitializationProxy() {
         // 設定ファイルからデータベースの設定を読む
-        CommentedConfigurationNode configDatabaseNode = plugin.getCommonConfigNode().getNode("database");
+        CommentedConfigurationNode configDatabaseNode = CMcCore.getCommonConfigNode().getNode("database");
         String url = configDatabaseNode.getNode("url").getString();
         String user = configDatabaseNode.getNode("user").getString();
         String password = configDatabaseNode.getNode("password").getString();
@@ -74,15 +69,15 @@ public class DatabaseModule implements PluginModule {
         // データソースを作る
         this.dataSource = new HikariDataSource(hc);
 
-        plugin.getLogger().info("データベースプールを初期化しました！");
+        CMcCore.getLogger().info("データベースプールを初期化しました！");
 
         this.executor = Executors.newFixedThreadPool(threads);
-        plugin.getLogger().info("クエリサービスを開始しました！");
+        CMcCore.getLogger().info("クエリサービスを開始しました！");
     }
 
     @Override
     public void onStoppedServerProxy() {
-        plugin.getLogger().info("クエリサービスを停止します。");
+        CMcCore.getLogger().info("クエリサービスを停止します。");
         this.executor.shutdown();
 
         // エラーが起きても5回試行
@@ -104,14 +99,14 @@ public class DatabaseModule implements PluginModule {
             } else {
                 // 5回目の試行ならエラー表示
                 if (tries == 5) {
-                    plugin.getLogger().info("クエリサービスを停止できなかったようです。");
+                    CMcCore.getLogger().info("クエリサービスを停止できなかったようです。");
                 }
             }
         }
 
         // TODO Minecraft Tickは終了時に実行されるのか？されなければ、ゲーム内とデータベースで矛盾が発生する可能性がある
 
-        plugin.getLogger().info("データソースをクローズします。");
+        CMcCore.getLogger().info("データソースをクローズします。");
         // データソースをクローズ
         dataSource.close();
     }

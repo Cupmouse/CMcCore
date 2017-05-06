@@ -1,6 +1,6 @@
 package net.cupmouse.minecraft.data.user;
 
-import net.cupmouse.minecraft.CMcPlugin;
+import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.Utilities;
 
 import java.sql.Connection;
@@ -12,11 +12,9 @@ import java.util.concurrent.Future;
 
 public class UserDataFetcher {
 
-    private CMcPlugin plugin;
     private final int userId;
 
-    public UserDataFetcher(CMcPlugin plugin, int userId) {
-        this.plugin = plugin;
+    public UserDataFetcher(int userId) {
         this.userId = userId;
     }
 
@@ -32,11 +30,11 @@ public class UserDataFetcher {
     public Future<Boolean> earnAchievementIfNot(UserAchievements achievement) {
         LocalDateTime datetime = LocalDateTime.now();
 
-        Future<Boolean> future = this.plugin.getDbm().queueQueryTask(() -> {
+        Future<Boolean> future = CMcCore.getDbm().queueQueryTask(() -> {
             Connection connection = null;
 
             try {
-                connection = this.plugin.getDbm().getConnection();
+                connection = CMcCore.getDbm().getConnection();
 
                 PreparedStatement prepStmt = connection.prepareStatement(
                         "SELECT COUNT(*) FROM user_achievement WHERE user_id = ?");

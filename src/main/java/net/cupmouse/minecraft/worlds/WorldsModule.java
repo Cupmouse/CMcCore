@@ -1,9 +1,10 @@
 package net.cupmouse.minecraft.worlds;
 
-import net.cupmouse.minecraft.CMcPlugin;
+import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.key.Keys;
@@ -27,30 +28,25 @@ import java.util.UUID;
 
 public class WorldsModule implements PluginModule {
 
-    private final CMcPlugin plugin;
     private Path configWorlds;
     private HoconConfigurationLoader configLoader;
 
     private static Map<Tag, World> WorldMap = new HashMap<>();
     private static Map<UUID, Tag> UuidTagMap = new HashMap<>();
 
-    public WorldsModule(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public void onPreInitializationProxy() {
-        this.configWorlds = plugin.getConfigDir().resolve("worlds.conf");
+        this.configWorlds = CMcCore.getConfigDir().resolve("worlds.conf");
 
     }
 
     @Override
     public void onInitializationProxy() {
-        this.plugin.getGame().getEventManager().registerListeners(plugin, this);
+        Sponge.getEventManager().registerListeners(CMcCore.getPlugin(), this);
 
         // ここから設定読み込み
 
-        CommentedConfigurationNode nodeWorlds = this.plugin.getCommonConfigNode().getNode("worlds");
+        CommentedConfigurationNode nodeWorlds = CMcCore.getCommonConfigNode().getNode("worlds");
         Map<Object, ? extends CommentedConfigurationNode> childrenMap = nodeWorlds.getChildrenMap();
 
         for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : childrenMap.entrySet()) {
@@ -81,13 +77,13 @@ public class WorldsModule implements PluginModule {
 
                     return CommandResult.success();
                 }).build();
-        this.plugin.getGame().getCommandManager().register(plugin, flyCommand, "fly");
+        Sponge.getCommandManager().register(CMcCore.getPlugin(), flyCommand, "fly");
     }
 
     @Override
     public void onServerStartingProxy() {
         if (Tag.values().length != UuidTagMap.size()) {
-            this.plugin.getLogger().warn(
+            CMcCore.getLogger().warn(
                     "読み込まれていないワールドがあるか、読み込まれたが予期されていないワールドがあります！");
         }
     }
@@ -102,10 +98,10 @@ public class WorldsModule implements PluginModule {
             Tag tag = UuidTagMap.get(uniqueId);
             WorldMap.put(tag, targetWorld);
 
-            this.plugin.getLogger().info(
+            CMcCore.getLogger().info(
                     "ワールドが読み込まれ、次のように関連付けられました　" + uniqueId + " / " + tag);
         } else {
-            this.plugin.getLogger().warn("予期されていないワールドがロードされます UUID : " + uniqueId);
+            CMcCore.getLogger().warn("予期されていないワールドがロードされます UUID : " + uniqueId);
         }
     }
 

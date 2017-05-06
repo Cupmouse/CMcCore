@@ -1,24 +1,11 @@
 package net.cupmouse.minecraft;
 
-import org.spongepowered.api.GameRegistry;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.server.ClientPingServerEvent;
-import org.spongepowered.api.network.status.Favicon;
 import org.spongepowered.api.text.Text;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
 public class PongPingModule implements PluginModule {
-
-    private CMcPlugin plugin;
-
-    public PongPingModule(CMcPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     @Listener
     public void onClientPingServer(ClientPingServerEvent event) {
@@ -57,6 +44,6 @@ public class PongPingModule implements PluginModule {
     public void onInitializationProxy() {
         // TODO 今後、ファビコンを変えたくなったら変える
 //        plugin.getGame().getRegistry().loadFavicon();
-        plugin.getGame().getEventManager().registerListeners(plugin, this);
+        Sponge.getEventManager().registerListeners(CMcCore.getPlugin(), this);
     }
 }

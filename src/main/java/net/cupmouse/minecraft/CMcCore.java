@@ -1,33 +1,18 @@
 package net.cupmouse.minecraft;
 
-import com.google.inject.Inject;
-import net.cupmouse.minecraft.beam.BeamModule;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
-import net.cupmouse.minecraft.worlds.WorldsModule;
+import net.cupmouse.minecraft.util.ModuleNotLoadedException;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.block.BlockType;
-import org.spongepowered.api.block.BlockTypes;
-import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.block.ChangeBlockEvent;
-import org.spongepowered.api.event.block.TickBlockEvent;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
-import org.spongepowered.api.event.server.ClientPingServerEvent;
-import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.chat.ChatTypes;
-import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,66 +22,67 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 
-@Plugin(id = "cmcplugin", name = "CMcPlugin", version = "alpha-0.1", description = "CMc Minecraft server plugin",
-        authors = "Cupmouse", url = "http://www.cupmouse.net/")
-public class CMcPlugin {
+public class CMcCore {
 
     private final Game game;
-    private final Logger logger;
-    private final Path configDir;
+    private static Object plugin;
+    private static Logger logger;
+    private static Path configDir;
     private final Path configCommon;
-    private CommentedConfigurationNode commonConfigNode;
+    private static CommentedConfigurationNode commonConfigNode;
     private HoconConfigurationLoader commonConfigLoader;
 
     private final List<PluginModule> modules;
-    private final DatabaseModule dbm;
-    private final UserDataModule userm;
-    private final BeamModule rs;
+    private static UserDataModule userm;
+    private static DatabaseModule dbm;
 
-    @Inject
-    public CMcPlugin(Game game, Logger logger, @ConfigDir(sharedRoot = false) Path configDir) {
+    public CMcCore(Game game, Object plugin, Logger logger, Path configDir, PluginModule[] moduleArray) {
         this.game = game;
+        this.plugin = plugin;
         this.logger = logger;
         this.configDir = configDir;
         this.configCommon = configDir.resolve("common.conf");
 
-        PluginModule[] moduleArray = {
-                this.dbm = new DatabaseModule(this),
-                new HeartbeatModule(this),
-                new PongPingModule(this),
-                this.userm = new UserDataModule(this),
-                new WorldsModule(this),
-                this.rs = new BeamModule(this)
-        };
-
         this.modules = Collections.unmodifiableList(Arrays.asList(moduleArray));
+
+        for (PluginModule pluginModule : moduleArray) {
+            if (pluginModule instanceof DatabaseModule) {
+                this.dbm = (DatabaseModule) pluginModule;
+            } else if (pluginModule instanceof UserDataModule) {
+                this.userm = ((UserDataModule) pluginModule);
+            }
+        }
+
+        Sponge.getEventManager().registerListeners(plugin, this);
     }
 
-    public Game getGame() {
-        return game;
-    }
-
-    public Logger getLogger() {
+    public static Logger getLogger() {
         return logger;
     }
 
-    public Path getConfigDir() {
-        return configDir;
-    }
-
-    public CommentedConfigurationNode getCommonConfigNode() {
-        return commonConfigNode;
-    }
-
-    public DatabaseModule getDbm() {
+    public static DatabaseModule getDbm() {
+        if (dbm == null) {
+            throw new ModuleNotLoadedException();
+        }
         return dbm;
     }
 
-    public UserDataModule getUserm() {
+    public static UserDataModule getUserm() {
+        if (userm == null) {
+            throw new ModuleNotLoadedException();
+        }
         return userm;
     }
 
-    public void stopEternally() {
+    public static Path getConfigDir() {
+        return configDir;
+    }
+
+    public static CommentedConfigurationNode getCommonConfigNode() {
+        return commonConfigNode;
+    }
+
+    public static void stopEternally() {
         // スレッドを永遠とスリープさせる。致命的なエラーが有った場合に呼ぶ。
 
         while (true) {
@@ -241,5 +227,9 @@ public class CMcPlugin {
 //        DataTransactionResult cupmouse = targetEntity.offer(Keys.DISPLAY_NAME, Text.of("Cupmouse"));
 //        logger.info(cupmouse.toString());
 //        logger.info(targetEntity.get(Keys.DISPLAY_NAME).get().toString());
+    }
+
+    public static Object getPlugin() {
+        return plugin;
     }
 }
