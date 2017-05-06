@@ -1,6 +1,13 @@
 package net.cupmouse.minecraft;
 
+import com.flowpowered.math.vector.Vector3d;
+import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
+
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class Utilities {
@@ -35,5 +42,13 @@ public final class Utilities {
                 (byte) (leastSignificantBits >>> 8),
                 (byte) leastSignificantBits,
         };
+    }
+
+    public static Vector3d loadVector3dFromConfig(ConfigurationNode configurationNode) {
+        double x = configurationNode.getNode("x").getDouble();
+        double y = configurationNode.getNode("y").getDouble();
+        double z = configurationNode.getNode("z").getDouble();
+
+        return new Vector3d(x, y, z);
     }
 }

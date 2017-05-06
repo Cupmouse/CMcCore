@@ -3,6 +3,7 @@ package net.cupmouse.minecraft;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
 import net.cupmouse.minecraft.util.ModuleNotLoadedException;
+import net.cupmouse.minecraft.worlds.WorldTag;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -13,18 +14,15 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.world.World;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 public class CMcCore {
 
-    private final Game game;
     private static Object plugin;
     private static Logger logger;
     private static Path configDir;
@@ -36,20 +34,19 @@ public class CMcCore {
     private static UserDataModule userm;
     private static DatabaseModule dbm;
 
-    public CMcCore(Game game, Object plugin, Logger logger, Path configDir, PluginModule[] moduleArray) {
-        this.game = game;
-        this.plugin = plugin;
-        this.logger = logger;
-        this.configDir = configDir;
+    public CMcCore(Object plugin, Logger logger, Path configDir, PluginModule[] moduleArray) {
+        CMcCore.plugin = plugin;
+        CMcCore.logger = logger;
+        CMcCore.configDir = configDir;
         this.configCommon = configDir.resolve("common.conf");
 
         this.modules = Collections.unmodifiableList(Arrays.asList(moduleArray));
 
         for (PluginModule pluginModule : moduleArray) {
             if (pluginModule instanceof DatabaseModule) {
-                this.dbm = (DatabaseModule) pluginModule;
+                CMcCore.dbm = (DatabaseModule) pluginModule;
             } else if (pluginModule instanceof UserDataModule) {
-                this.userm = ((UserDataModule) pluginModule);
+                CMcCore.userm = ((UserDataModule) pluginModule);
             }
         }
 
@@ -58,6 +55,10 @@ public class CMcCore {
 
     public static Logger getLogger() {
         return logger;
+    }
+
+    public static Object getPlugin() {
+        return plugin;
     }
 
     public static DatabaseModule getDbm() {
@@ -142,7 +143,7 @@ public class CMcCore {
         this.commonConfigLoader = HoconConfigurationLoader.builder().setPath(configCommon).build();
 
         try {
-            this.commonConfigNode = commonConfigLoader.load();
+            commonConfigNode = commonConfigLoader.load();
         } catch (IOException e) {
             // 設定が読み込まれないのは致命的だから、管理人が調査できるまでサーバーをストップする
 
@@ -220,6 +221,8 @@ public class CMcCore {
         logger.debug("GameStopped");
     }
 
+    // ここから普通
+
     @Listener(order = Order.DEFAULT)
     public void onLogin(ClientConnectionEvent.Join event) {
         Player targetEntity = event.getTargetEntity();
@@ -227,9 +230,5 @@ public class CMcCore {
 //        DataTransactionResult cupmouse = targetEntity.offer(Keys.DISPLAY_NAME, Text.of("Cupmouse"));
 //        logger.info(cupmouse.toString());
 //        logger.info(targetEntity.get(Keys.DISPLAY_NAME).get().toString());
-    }
-
-    public static Object getPlugin() {
-        return plugin;
     }
 }
