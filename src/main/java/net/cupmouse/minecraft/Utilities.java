@@ -44,11 +44,12 @@ public final class Utilities {
         };
     }
 
-    public static Vector3d loadVector3dFromConfig(ConfigurationNode configurationNode) {
-        double x = configurationNode.getNode("x").getDouble();
-        double y = configurationNode.getNode("y").getDouble();
-        double z = configurationNode.getNode("z").getDouble();
-
-        return new Vector3d(x, y, z);
-    }
+    // TODO
+//    public static Vector3d loadVector3dFromConfig(ConfigurationNode configurationNode) {
+//        double x = configurationNode.getNode("x").getDouble();
+//        double y = configurationNode.getNode("y").getDouble();
+//        double z = configurationNode.getNode("z").getDouble();
+//
+//        return new Vector3d(x, y, z);
+//    }
 }

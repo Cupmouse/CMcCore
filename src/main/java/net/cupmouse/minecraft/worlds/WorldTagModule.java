@@ -3,10 +3,8 @@ package net.cupmouse.minecraft.worlds;
 import com.google.common.reflect.TypeToken;
 import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
-import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
@@ -24,11 +22,19 @@ public class WorldTagModule implements PluginModule {
     private static Map<WorldTag, World> tagWorldMap = new HashMap<>();
 
     @Override
+    public void onPreInitializationProxy() throws Exception {
+        // ワールドタグのシリアライザ－を登録する
+        TypeSerializers.getDefaultSerializers()
+                .registerType(TypeToken.of(WorldTag.class), new WorldTag.Serializer());
+        TypeSerializers.getDefaultSerializers()
+                .registerType(TypeToken.of(WorldTagLocation.class), new WorldTagLocation.Serializer());
+        TypeSerializers.getDefaultSerializers()
+                .registerType(TypeToken.of(WorldTagRocation.class), new WorldTagRocation.Serializer());
+    }
+
+    @Override
     public void onInitializationProxy() throws ObjectMappingException {
         Sponge.getEventManager().registerListeners(CMcCore.getPlugin(), this);
-
-        // ワールドタグのシリアライザ－を登録する
-        TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(WorldTag.class), new Serializer());
 
         CommentedConfigurationNode nodeWorlds = CMcCore.getCommonConfigNode().getNode("worlds");
         Map<Object, ? extends CommentedConfigurationNode> childrenMap = nodeWorlds.getChildrenMap();
@@ -97,18 +103,4 @@ public class WorldTagModule implements PluginModule {
         return Optional.ofNullable(tagWorldMap.get(tag));
     }
 
-    private static class Serializer implements TypeSerializer<WorldTag> {
-
-        @Override
-        public WorldTag deserialize(TypeToken<?> type, ConfigurationNode value) throws ObjectMappingException {
-            String name = value.getNode("name").getString();
-
-            return WorldTag.byName(name);
-        }
-
-        @Override
-        public void serialize(TypeToken<?> type, WorldTag obj, ConfigurationNode value) throws ObjectMappingException {
-            value.getNode("name").setValue(obj.getTagName());
-        }
-    }
 }

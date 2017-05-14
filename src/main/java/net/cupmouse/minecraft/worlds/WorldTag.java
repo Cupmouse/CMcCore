@@ -1,5 +1,10 @@
 package net.cupmouse.minecraft.worlds;
 
+import com.google.common.reflect.TypeToken;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+
 import java.util.Objects;
 
 public final class WorldTag {
@@ -29,5 +34,20 @@ public final class WorldTag {
 
     public static WorldTag byName(String name) {
         return new WorldTag(name);
+    }
+
+    static class Serializer implements TypeSerializer<WorldTag> {
+
+        @Override
+        public WorldTag deserialize(TypeToken<?> type, ConfigurationNode value) throws ObjectMappingException {
+            String name = value.getNode("name").getString();
+
+            return byName(name);
+        }
+
+        @Override
+        public void serialize(TypeToken<?> type, WorldTag obj, ConfigurationNode value) throws ObjectMappingException {
+            value.getNode("name").setValue(obj.getTagName());
+        }
     }
 }
