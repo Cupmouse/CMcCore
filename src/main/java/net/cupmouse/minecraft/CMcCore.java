@@ -102,7 +102,7 @@ public class CMcCore {
     @Listener
     public void onPreInitialization(GamePreInitializationEvent event) {
         logger.debug("PreInit");
-        // logger onInitializationProxy
+        // logger onPreInitializationProxy
 
         // サーバーの設定が正常がチェックする
         // TODO このチェックアホくさい
@@ -111,20 +111,6 @@ public class CMcCore {
             logger.error("時間地域を[Asia/Tokyo]に設定してください");
             stopEternally();
         }
-
-        try {
-            for (PluginModule module : modules) {
-                module.onPreInitializationProxy();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            stopEternally();
-        }
-    }
-
-    @Listener
-    public void onInitialization(GameInitializationEvent event) {
-        logger.debug("Init");
 
         // 設定の読み込み
 
@@ -151,7 +137,21 @@ public class CMcCore {
             stopEternally();
         }
 
-        logger.info("設定を読み込みました！");
+        logger.info("共通設定を読み込みました！");
+
+        try {
+            for (PluginModule module : modules) {
+                module.onPreInitializationProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopEternally();
+        }
+    }
+
+    @Listener
+    public void onInitialization(GameInitializationEvent event) {
+        logger.debug("Init");
 
         // plugin fuc onInitializationProxy
         try {
@@ -171,8 +171,13 @@ public class CMcCore {
         logger.debug("ServerStarting");
         // onInitializationProxy for server (worlds are not loaded yet)
 
-        for (PluginModule module : modules) {
-            module.onAboutToStartServerProxy();
+        try {
+            for (PluginModule module : modules) {
+                module.onAboutToStartServerProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopEternally();
         }
     }
 

@@ -2,23 +2,23 @@ package net.cupmouse.minecraft;
 
 public interface PluginModule {
 
-    default void onPreInitializationProxy() {
+    default void onPreInitializationProxy() throws Exception {
 
     }
 
-    default void onInitializationProxy() {
+    default void onInitializationProxy() throws Exception {
 
     }
 
-    default void onAboutToStartServerProxy() {
+    default void onAboutToStartServerProxy() throws Exception {
 
     }
 
-    default void onServerStartingProxy() {
+    default void onServerStartingProxy() throws Exception {
 
     }
 
-    default void onStoppedServerProxy() {
+    default void onStoppedServerProxy() throws Exception {
 
     }
 }
