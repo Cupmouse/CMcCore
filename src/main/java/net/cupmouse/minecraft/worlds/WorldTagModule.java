@@ -5,6 +5,7 @@ import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollection;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
@@ -24,12 +25,12 @@ public class WorldTagModule implements PluginModule {
     @Override
     public void onPreInitializationProxy() throws Exception {
         // ワールドタグのシリアライザ－を登録する
-        TypeSerializers.getDefaultSerializers()
-                .registerType(TypeToken.of(WorldTag.class), new WorldTag.Serializer());
-        TypeSerializers.getDefaultSerializers()
-                .registerType(TypeToken.of(WorldTagLocation.class), new WorldTagLocation.Serializer());
-        TypeSerializers.getDefaultSerializers()
-                .registerType(TypeToken.of(WorldTagRocation.class), new WorldTagRocation.Serializer());
+        TypeSerializerCollection defaultSerializers = TypeSerializers.getDefaultSerializers();
+
+        defaultSerializers.registerType(TypeToken.of(WorldTag.class), new WorldTag.Serializer());
+        defaultSerializers.registerType(TypeToken.of(WorldTagLocation.class), new WorldTagLocation.Serializer());
+        defaultSerializers.registerType(TypeToken.of(WorldTagRocation.class), new WorldTagRocation.Serializer());
+        defaultSerializers.registerType(TypeToken.of(WorldTagAreaSquare.class), new WorldTagAreaSquare.Serializer());
     }
 
     @Override

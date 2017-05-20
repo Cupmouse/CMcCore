@@ -95,7 +95,8 @@ public class WorldTagAreaSquare extends WorldTagArea {
     static class Serializer implements TypeSerializer<WorldTagAreaSquare> {
 
         @Override
-        public WorldTagAreaSquare deserialize(TypeToken<?> type, ConfigurationNode value) throws ObjectMappingException {
+        public WorldTagAreaSquare deserialize(TypeToken<?> type, ConfigurationNode value)
+                throws ObjectMappingException {
             WorldTag worldTag = value.getValue(TypeToken.of(WorldTag.class));
             Vector3i minPos = value.getNode("min_position").getValue(TypeToken.of(Vector3i.class));
             Vector3i maxPos = value.getNode("max_position").getValue(TypeToken.of(Vector3i.class));
@@ -106,7 +107,8 @@ public class WorldTagAreaSquare extends WorldTagArea {
         }
 
         @Override
-        public void serialize(TypeToken<?> type, WorldTagAreaSquare obj, ConfigurationNode value) throws ObjectMappingException {
+        public void serialize(TypeToken<?> type, WorldTagAreaSquare obj, ConfigurationNode value)
+                throws ObjectMappingException {
             // TODO
         }
     }

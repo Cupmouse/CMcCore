@@ -7,6 +7,7 @@ import net.cupmouse.minecraft.util.WorldNotFoundException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -21,6 +22,10 @@ public class WorldTagLocation {
     public WorldTagLocation(WorldTag worldTag, Vector3d position) {
         this.worldTag = worldTag;
         this.position = position;
+    }
+
+    public boolean teleportHere(Entity entity) throws WorldNotFoundException {
+        return entity.setLocation(convertLocation());
     }
 
     public Location<World> convertLocation() throws WorldNotFoundException {
