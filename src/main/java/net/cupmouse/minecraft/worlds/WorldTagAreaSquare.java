@@ -21,10 +21,8 @@ public class WorldTagAreaSquare extends WorldTagArea {
         this.maxPos = new Vector3i(Math.max(x1, x2), Math.max(y1, y2), Math.max(z1, z2));
     }
 
-    public WorldTagAreaSquare(WorldTag worldTag, Vector3i minPos, Vector3i maxPos) {
-        super(worldTag);
-        this.minPos = minPos;
-        this.maxPos = maxPos;
+    public WorldTagAreaSquare(WorldTag worldTag, Vector3i pos1, Vector3i pos2) {
+        this(worldTag, pos1.getX(), pos2.getX(), pos1.getY(), pos2.getY(), pos1.getZ(), pos2.getZ());
     }
 
     @Override

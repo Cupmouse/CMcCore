@@ -2,8 +2,7 @@ package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.common.reflect.TypeToken;
-import net.cupmouse.minecraft.Utilities;
-import net.cupmouse.minecraft.util.WorldNotFoundException;
+import net.cupmouse.minecraft.util.UnknownWorldException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
@@ -11,11 +10,10 @@ import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-import java.lang.reflect.Type;
 import java.util.Optional;
-import java.util.Vector;
 
-public class WorldTagLocation {
+public class WorldTagLocation implements WorldTagPosition {
+
     public final WorldTag worldTag;
     public final Vector3d position;
 
@@ -24,18 +22,34 @@ public class WorldTagLocation {
         this.position = position;
     }
 
-    public boolean teleportHere(Entity entity) throws WorldNotFoundException {
-        return entity.setLocation(convertLocation());
+    @Override
+    public boolean teleportHere(Entity entity) throws UnknownWorldException {
+        return entity.setLocation(convertSponge());
     }
 
-    public Location<World> convertLocation() throws WorldNotFoundException {
+    @Override
+    public Location<World> convertSponge() throws UnknownWorldException {
         Optional<World> taggedWorld = WorldTagModule.getTaggedWorld(worldTag);
 
         if (!taggedWorld.isPresent()) {
-            throw new WorldNotFoundException();
+            throw new UnknownWorldException();
         }
 
         return new Location<World>(taggedWorld.get(), position);
+    }
+
+    @Override
+    public WorldTag getWorldTag() {
+        return worldTag;
+    }
+
+    @Override
+    public Vector3d getPosition() {
+        return position;
+    }
+
+    public WorldTagRocation convertRocation() {
+        return new WorldTagRocation(worldTag, position, Vector3d.ZERO);
     }
 
     static class Serializer implements TypeSerializer<WorldTagLocation> {

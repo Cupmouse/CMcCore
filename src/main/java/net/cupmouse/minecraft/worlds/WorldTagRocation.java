@@ -2,30 +2,62 @@ package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.common.reflect.TypeToken;
-import net.cupmouse.minecraft.Utilities;
-import net.cupmouse.minecraft.util.WorldNotFoundException;
-import net.cupmouse.minecraft.worlds.WorldTag;
-import net.cupmouse.minecraft.worlds.WorldTagLocation;
+import net.cupmouse.minecraft.util.UnknownWorldException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
-import javax.xml.stream.events.EndElement;
-import java.lang.reflect.Type;
+import java.util.Optional;
 
-public final class WorldTagRocation extends WorldTagLocation {
+public final class WorldTagRocation implements WorldTagPosition {
 
+    public final WorldTag worldTag;
+    public final Vector3d position;
     public final Vector3d rotation;
 
     public WorldTagRocation(WorldTag worldTag, Vector3d position, Vector3d rotation) {
-        super(worldTag, position);
+        this.worldTag = worldTag;
+        this.position = position;
         this.rotation = rotation;
     }
 
     @Override
-    public boolean teleportHere(Entity entity) throws WorldNotFoundException {
-        return entity.setLocationAndRotation(convertLocation(), rotation);
+    public boolean teleportHere(Entity entity) throws UnknownWorldException {
+        return entity.setLocationAndRotation(convertSponge(), rotation);
+    }
+
+    public WorldTagLocation convertLocation() {
+        return new WorldTagLocation(worldTag, rotation);
+    }
+
+    @Override
+    public Location<World> convertSponge() throws UnknownWorldException {
+        return convertLocation().convertSponge();
+    }
+
+    @Override
+    public WorldTag getWorldTag() {
+        return worldTag;
+    }
+
+    @Override
+    public Vector3d getPosition() {
+        return position;
+    }
+
+    public static WorldTagRocation fromEntity(Entity entity) throws UnknownWorldException {
+        Location<World> location = entity.getLocation();
+
+        Optional<WorldTag> worldTagOptional = WorldTagModule.whatIsThisWorld(location.getExtent());
+
+        if (!worldTagOptional.isPresent()) {
+            throw new UnknownWorldException();
+        }
+
+        return new WorldTagRocation(worldTagOptional.get(), location.getPosition(), entity.getRotation());
     }
 
     static class Serializer implements TypeSerializer<WorldTagRocation> {
