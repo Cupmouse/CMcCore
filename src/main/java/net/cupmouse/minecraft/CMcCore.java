@@ -49,8 +49,6 @@ public class CMcCore {
                 CMcCore.userm = ((UserDataModule) pluginModule);
             }
         }
-
-        Sponge.getEventManager().registerListeners(plugin, this);
     }
 
     public static Logger getLogger() {
@@ -99,10 +97,11 @@ public class CMcCore {
 
     // Handling initialization state events
 
-    @Listener
     public void onPreInitialization(GamePreInitializationEvent event) {
         logger.debug("PreInit");
         // logger onPreInitializationProxy
+
+        Sponge.getEventManager().registerListeners(plugin, this);
 
         // サーバーの設定が正常がチェックする
         // TODO このチェックアホくさい
@@ -118,7 +117,7 @@ public class CMcCore {
         if (!Files.exists(configCommon)) {
             try {
                 Files.createDirectories(configDir);
-                Sponge.getAssetManager().getAsset(this, "common.conf").get().copyToFile(configCommon);
+                Sponge.getAssetManager().getAsset(plugin, "common.conf").get().copyToFile(configCommon);
             } catch (IOException e) {
                 e.printStackTrace();
                 stopEternally();
@@ -138,7 +137,9 @@ public class CMcCore {
         }
 
         logger.info("共通設定を読み込みました！");
+    }
 
+    public void onPrePostInitialization() {
         try {
             for (PluginModule module : modules) {
                 logger.info("前初期化/" + module.getClass().getCanonicalName());
@@ -194,6 +195,19 @@ public class CMcCore {
     public void onStoppingServer(GameStoppingServerEvent event) {
         logger.debug("ServerStopping");
         // deconstruct before worlds will be unloaded
+
+        // モジュールを停止
+
+        try {
+            // 逆順で停止
+            for (int i = modules.size() - 1; i >= 0; i--) {
+                logger.info("サーバー準終了/" + modules.get(i).getClass().getCanonicalName());
+                modules.get(i).onStoppingServerProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopEternally();
+        }
     }
 
     @Listener

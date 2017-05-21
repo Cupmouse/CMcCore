@@ -41,6 +41,8 @@ public class WorldTagAreaSquare extends WorldTagArea {
         // 四角を書く
         for (; y <= maxPos.getY(); y++) {
 
+            // FIXME
+
             // 下段と上段なら四角を描く
             if (y == minPos.getY() || y == maxPos.getY()) {
                 for (; x <= maxPos.getX(); x++) {
@@ -64,14 +66,9 @@ public class WorldTagAreaSquare extends WorldTagArea {
                 blockLocs.add(new Vector3i(maxPos.getX(), y, minPos.getZ()));
                 blockLocs.add(new Vector3i(minPos.getX(), y, maxPos.getZ()));
                 blockLocs.add(new Vector3i(maxPos.getX(), y, maxPos.getZ()));
-                blockLocs.add(new Vector3i(minPos.getX(), y, minPos.getZ()));
-                blockLocs.add(new Vector3i(maxPos.getX(), y, minPos.getZ()));
-                blockLocs.add(new Vector3i(minPos.getX(), y, maxPos.getZ()));
-                blockLocs.add(new Vector3i(maxPos.getX(), y, maxPos.getZ()));
             }
         }
 
-        blockLocs.add(new Vector3i());
         return new BlockLocSequence(worldTag, blockLocs);
     }
 

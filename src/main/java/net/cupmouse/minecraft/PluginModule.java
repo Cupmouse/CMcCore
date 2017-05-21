@@ -18,6 +18,10 @@ public interface PluginModule {
 
     }
 
+    default void onStoppingServerProxy() throws Exception {
+
+    }
+
     default void onStoppedServerProxy() throws Exception {
 
     }
