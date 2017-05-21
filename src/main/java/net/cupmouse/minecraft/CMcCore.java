@@ -141,6 +141,7 @@ public class CMcCore {
 
         try {
             for (PluginModule module : modules) {
+                logger.info("前初期化/" + module.getClass().getCanonicalName());
                 module.onPreInitializationProxy();
             }
         } catch (Exception e) {
@@ -156,6 +157,7 @@ public class CMcCore {
         // plugin fuc onInitializationProxy
         try {
             for (PluginModule module : modules) {
+                logger.info("初期化/" + module.getClass().getCanonicalName());
                 module.onInitializationProxy();
             }
         } catch (Exception e) {
@@ -173,6 +175,7 @@ public class CMcCore {
 
         try {
             for (PluginModule module : modules) {
+                logger.info("サーバー準備中/" + module.getClass().getCanonicalName());
                 module.onAboutToStartServerProxy();
             }
         } catch (Exception e) {
@@ -203,6 +206,7 @@ public class CMcCore {
         try {
             // 逆順で停止
             for (int i = modules.size() - 1; i >= 0; i--) {
+                logger.info("サーバー終了/" + modules.get(i).getClass().getCanonicalName());
                 modules.get(i).onStoppedServerProxy();
             }
         } catch (Exception e) {
