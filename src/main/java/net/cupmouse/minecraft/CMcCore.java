@@ -84,15 +84,15 @@ public class CMcCore {
     public static void stopEternally() {
         // スレッドを永遠とスリープさせる。致命的なエラーが有った場合に呼ぶ。
 
-        while (true) {
-            try {
-                Thread.sleep(2^31);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // TODO 適切な通知を行う
-        }
+//        while (true) {
+//            try {
+//                Thread.sleep(2^31);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//            // TODO 適切な通知を行う
+//        }
     }
 
     // Handling initialization state events
@@ -140,14 +140,14 @@ public class CMcCore {
     }
 
     public void onPrePostInitialization() {
-        try {
-            for (PluginModule module : modules) {
-                logger.info("前初期化/" + module.getClass().getCanonicalName());
+        for (PluginModule module : modules) {
+            logger.info("前初期化/" + module.getClass().getCanonicalName());
+            try {
                 module.onPreInitializationProxy();
+            } catch (Exception e) {
+                e.printStackTrace();
+                stopEternally();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            stopEternally();
         }
     }
 
@@ -156,14 +156,14 @@ public class CMcCore {
         logger.debug("Init");
 
         // plugin fuc onInitializationProxy
-        try {
-            for (PluginModule module : modules) {
-                logger.info("初期化/" + module.getClass().getCanonicalName());
+        for (PluginModule module : modules) {
+            logger.info("初期化/" + module.getClass().getCanonicalName());
+            try {
                 module.onInitializationProxy();
+            } catch (Exception e) {
+                e.printStackTrace();
+                stopEternally();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            stopEternally();
         }
     }
 
@@ -174,14 +174,14 @@ public class CMcCore {
         logger.debug("ServerStarting");
         // onInitializationProxy for server (worlds are not loaded yet)
 
-        try {
-            for (PluginModule module : modules) {
-                logger.info("サーバー準備中/" + module.getClass().getCanonicalName());
+        for (PluginModule module : modules) {
+            logger.info("サーバー準備中/" + module.getClass().getCanonicalName());
+            try {
                 module.onAboutToStartServerProxy();
+            } catch (Exception e) {
+                e.printStackTrace();
+                stopEternally();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            stopEternally();
         }
     }
 
@@ -198,15 +198,15 @@ public class CMcCore {
 
         // モジュールを停止
 
-        try {
-            // 逆順で停止
-            for (int i = modules.size() - 1; i >= 0; i--) {
-                logger.info("サーバー準終了/" + modules.get(i).getClass().getCanonicalName());
+        // 逆順で停止
+        for (int i = modules.size() - 1; i >= 0; i--) {
+            logger.info("サーバー準終了/" + modules.get(i).getClass().getCanonicalName());
+            try {
                 modules.get(i).onStoppingServerProxy();
+            } catch (Exception e) {
+                e.printStackTrace();
+                stopEternally();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            stopEternally();
         }
     }
 
@@ -217,15 +217,15 @@ public class CMcCore {
 
         // モジュールを停止
 
-        try {
-            // 逆順で停止
-            for (int i = modules.size() - 1; i >= 0; i--) {
-                logger.info("サーバー終了/" + modules.get(i).getClass().getCanonicalName());
+        // 逆順で停止
+        for (int i = modules.size() - 1; i >= 0; i--) {
+            logger.info("サーバー終了/" + modules.get(i).getClass().getCanonicalName());
+            try {
                 modules.get(i).onStoppedServerProxy();
+            } catch (Exception e) {
+                e.printStackTrace();
+                stopEternally();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            stopEternally();
         }
 
         try {

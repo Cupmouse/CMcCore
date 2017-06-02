@@ -30,6 +30,7 @@ public class WorldTagModule implements PluginModule {
         defaultSerializers.registerType(TypeToken.of(WorldTag.class), new WorldTag.Serializer());
         defaultSerializers.registerType(TypeToken.of(WorldTagLocation.class), new WorldTagLocation.Serializer());
         defaultSerializers.registerType(TypeToken.of(WorldTagRocation.class), new WorldTagRocation.Serializer());
+        defaultSerializers.registerType(TypeToken.of(WorldTagArea.class), new WorldTagArea.Serializer());
         defaultSerializers.registerType(TypeToken.of(WorldTagAreaSquare.class), new WorldTagAreaSquare.Serializer());
     }
 

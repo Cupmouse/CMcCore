@@ -6,7 +6,9 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.spongepowered.api.data.value.mutable.SetValue;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class WorldTagAreaSquare extends WorldTagArea {
@@ -92,7 +94,7 @@ public class WorldTagAreaSquare extends WorldTagArea {
         @Override
         public WorldTagAreaSquare deserialize(TypeToken<?> type, ConfigurationNode value)
                 throws ObjectMappingException {
-            WorldTag worldTag = value.getValue(TypeToken.of(WorldTag.class));
+            WorldTag worldTag = value.getNode("world_tag").getValue(TypeToken.of(WorldTag.class));
             Vector3i minPos = value.getNode("min_position").getValue(TypeToken.of(Vector3i.class));
             Vector3i maxPos = value.getNode("max_position").getValue(TypeToken.of(Vector3i.class));
 
@@ -104,7 +106,9 @@ public class WorldTagAreaSquare extends WorldTagArea {
         @Override
         public void serialize(TypeToken<?> type, WorldTagAreaSquare obj, ConfigurationNode value)
                 throws ObjectMappingException {
-            // TODO
+            value.getNode("world_tag").setValue(TypeToken.of(WorldTag.class), obj.worldTag);
+            value.getNode("min_position").setValue(TypeToken.of(Vector3i.class), obj.minPos);
+            value.getNode("max_position").getValue(TypeToken.of(Vector3i.class), obj.maxPos);
         }
     }
 }
