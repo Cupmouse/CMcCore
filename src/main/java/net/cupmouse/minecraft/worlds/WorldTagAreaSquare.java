@@ -7,6 +7,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.data.value.mutable.SetValue;
+import org.spongepowered.api.world.World;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class WorldTagAreaSquare extends WorldTagArea {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
 
-                for (; z >= minPos.getX(); z--) {
+                for (; z >= minPos.getZ(); z--) {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
 
@@ -87,6 +88,16 @@ public class WorldTagAreaSquare extends WorldTagArea {
         blockLocs.add(new Vector3i(maxPos.getX(), maxPos.getY(), maxPos.getZ()));
 
         return new BlockLocSequence(worldTag, blockLocs);
+    }
+
+    @Override
+    public WorldTagAreaSquare relativeBasePoint(Vector3i basePoint) {
+        return new WorldTagAreaSquare(worldTag, minPos.add(basePoint), maxPos.add(basePoint));
+    }
+
+    @Override
+    public WorldTagAreaSquare relativeTo(Vector3i basePoint) {
+        return new WorldTagAreaSquare(worldTag, minPos.sub(basePoint), maxPos.sub(basePoint));
     }
 
     static class Serializer implements TypeSerializer<WorldTagAreaSquare> {

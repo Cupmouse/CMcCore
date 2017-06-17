@@ -34,6 +34,10 @@ public abstract class WorldTagArea {
 
     public abstract BlockLocSequence getCornerBlocks();
 
+    public abstract WorldTagArea relativeBasePoint(Vector3i basePoint);
+
+    public abstract WorldTagAreaSquare relativeTo(Vector3i basePoint);
+
     static class Serializer implements TypeSerializer<WorldTagArea> {
 
         @Override

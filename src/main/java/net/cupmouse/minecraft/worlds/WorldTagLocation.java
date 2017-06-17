@@ -1,6 +1,7 @@
 package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.reflect.TypeToken;
 import net.cupmouse.minecraft.util.UnknownWorldException;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -46,6 +47,11 @@ public class WorldTagLocation implements WorldTagPosition {
     @Override
     public Vector3d getPosition() {
         return position;
+    }
+
+    @Override
+    public WorldTagLocation relativeBasePoint(Vector3i basePoint) {
+        return new WorldTagLocation(worldTag, position.add(basePoint.toDouble()));
     }
 
     public WorldTagRocation convertRocation() {
