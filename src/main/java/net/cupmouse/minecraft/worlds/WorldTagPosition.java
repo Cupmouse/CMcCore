@@ -1,21 +1,69 @@
 package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.flowpowered.math.vector.Vector3i;
-import net.cupmouse.minecraft.util.UnknownWorldException;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-public interface WorldTagPosition {
+import java.util.Optional;
 
-    boolean teleportHere(Entity entity) throws UnknownWorldException;
+public abstract class WorldTagPosition {
 
-    Location<World> convertSponge() throws UnknownWorldException;
+    public final WorldTag worldTag;
+    public final Vector3d position;
 
-    WorldTag getWorldTag();
+    protected WorldTagPosition(WorldTag worldTag, Vector3d position) {
+        this.worldTag = worldTag;
+        this.position = position;
+    }
 
-    Vector3d getPosition();
+    public final boolean teleportHere(Entity entity) {
+        Optional<Location<World>> spongeLocationOptional = convertSponge();
+        return spongeLocationOptional.filter(entity::setLocation).isPresent();
+    }
 
-    WorldTagPosition relativeBasePoint(Vector3i basePoint);
+    public final Optional<Location<World>> convertSponge() {
+        return WorldTagModule.getTaggedWorld(worldTag).map(world -> new Location<>(world, position));
+    }
+
+    public final WorldTag getWorldTag() {
+        return worldTag;
+    }
+
+    public final Vector3d getPosition() {
+        return position;
+    }
+
+    public abstract WorldTagPosition worldTag(WorldTag worldTag);
+
+    public abstract WorldTagPosition position(Vector3d position);
+
+
+    /**
+     * WorldTagは違っていてもこの関数を呼んだインスタンスの方が採用されます
+     * @param basePosition
+     * @return
+     */
+    public WorldTagPosition relativeBase(WorldTagPosition basePosition) {
+        return position(position.add(basePosition.position));
+    }
+
+    public WorldTagPosition relativeBasePoint(Vector3d basePoint) {
+        return position(position.add(basePoint));
+    }
+
+    /**
+     * WorldTagは違っていてもこの関数を呼んだインスタンスの方が採用されます
+     *
+     * @param basePosition
+     * @return
+     */
+    public WorldTagPosition relativeTo(WorldTagPosition basePosition) {
+        return position(position.sub(basePosition.position));
+    }
+
+    public WorldTagPosition relativeToPoint(Vector3d basePoint) {
+        return position(position.sub(basePoint));
+    }
+
 }

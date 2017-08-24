@@ -3,6 +3,7 @@ package net.cupmouse.minecraft.worlds;
 import com.google.common.reflect.TypeToken;
 import net.cupmouse.minecraft.CMcCore;
 import net.cupmouse.minecraft.PluginModule;
+import net.cupmouse.minecraft.util.UnknownWorldException;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollection;
@@ -81,6 +82,16 @@ public class WorldTagModule implements PluginModule {
         return Optional.ofNullable(uuidTagMap.get(world.getUniqueId()));
     }
 
+    public static WorldTag getWorldOrThrow(World world) throws UnknownWorldException {
+        WorldTag worldTag = uuidTagMap.get(world.getUniqueId());
+
+        if (worldTag == null) {
+            throw new UnknownWorldException();
+        }
+
+        return worldTag;
+    }
+
     /**
      * タグとワールドを指定して、指定されたワールドインスタンスが、タグと一致するかを返す。
      * つまり、指定されたワールドインスタンスが目的のものかチェックする。
@@ -104,5 +115,4 @@ public class WorldTagModule implements PluginModule {
     public static Optional<World> getTaggedWorld(WorldTag tag) {
         return Optional.ofNullable(tagWorldMap.get(tag));
     }
-
 }

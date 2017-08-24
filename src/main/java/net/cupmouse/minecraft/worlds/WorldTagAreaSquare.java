@@ -6,26 +6,26 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import org.spongepowered.api.data.value.mutable.SetValue;
-import org.spongepowered.api.world.World;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class WorldTagAreaSquare extends WorldTagArea {
 
-    public final Vector3i minPos;
-    public final Vector3i maxPos;
+    public final Vector3d minPos;
+    public final Vector3d maxPos;
 
-    public WorldTagAreaSquare(WorldTag worldTag, int x1, int x2, int y1, int y2, int z1, int z2) {
+    private WorldTagAreaSquare(WorldTag worldTag, double x1, double y1, double z1, double x2, double y2, double z2) {
         super(worldTag);
 
-        this.minPos = new Vector3i(Math.min(x1, x2), Math.min(y1, y2), Math.min(z1, z2));
-        this.maxPos = new Vector3i(Math.max(x1, x2), Math.max(y1, y2), Math.max(z1, z2));
+        this.minPos = new Vector3d(Math.min(x1, x2), Math.min(y1, y2), Math.min(z1, z2));
+        this.maxPos = new Vector3d(Math.max(x1, x2), Math.max(y1, y2), Math.max(z1, z2));
     }
 
-    public WorldTagAreaSquare(WorldTag worldTag, Vector3i pos1, Vector3i pos2) {
-        this(worldTag, pos1.getX(), pos2.getX(), pos1.getY(), pos2.getY(), pos1.getZ(), pos2.getZ());
+    private WorldTagAreaSquare(WorldTag worldTag, Vector3d minPos, Vector3d maxPos) {
+        super(worldTag);
+
+        this.minPos = minPos;
+        this.maxPos = maxPos;
     }
 
     @Override
@@ -39,10 +39,11 @@ public class WorldTagAreaSquare extends WorldTagArea {
     public BlockLocSequence getOutlineBlocks() {
         ArrayList<Vector3i> blockLocs = new ArrayList<>();
 
-        int x = minPos.getX(), y = minPos.getY(), z = minPos.getZ();
+        int y = (int) minPos.getY();
 
         // 四角を書く
         for (; y <= maxPos.getY(); y++) {
+            double x = minPos.getX(), z = minPos.getZ();
 
             // FIXME
 
@@ -60,7 +61,7 @@ public class WorldTagAreaSquare extends WorldTagArea {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
 
-                for (; x >= maxPos.getX(); x--) {
+                for (; x >= minPos.getX(); x--) {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
             } else {
@@ -91,13 +92,35 @@ public class WorldTagAreaSquare extends WorldTagArea {
     }
 
     @Override
-    public WorldTagAreaSquare relativeBasePoint(Vector3i basePoint) {
+    public WorldTagArea worldTag(WorldTag worldTag) {
+        return new WorldTagAreaSquare(worldTag, minPos, maxPos);
+    }
+
+    @Override
+    public WorldTagArea relativeBase(WorldTagLocation baseLocation) {
+        return new WorldTagAreaSquare(worldTag,
+                minPos.add(baseLocation.position), maxPos.add(baseLocation.position));
+    }
+
+    @Override
+    public WorldTagAreaSquare relativeBasePoint(Vector3d basePoint) {
         return new WorldTagAreaSquare(worldTag, minPos.add(basePoint), maxPos.add(basePoint));
     }
 
     @Override
-    public WorldTagAreaSquare relativeTo(Vector3i basePoint) {
+    public WorldTagArea relativeTo(WorldTagLocation baseLocation) {
+        return new WorldTagAreaSquare(worldTag,
+                minPos.sub(baseLocation.position), maxPos.sub(baseLocation.position));
+    }
+
+    @Override
+    public WorldTagAreaSquare relativeToPoint(Vector3d basePoint) {
         return new WorldTagAreaSquare(worldTag, minPos.sub(basePoint), maxPos.sub(basePoint));
+    }
+
+    public static WorldTagAreaSquare fromWorldTagAndPositions(WorldTag worldTag, Vector3d pos1, Vector3d pos2) {
+        return new WorldTagAreaSquare(worldTag,
+                pos1.getX(), pos1.getY(), pos1.getZ(), pos2.getX(), pos2.getY(), pos2.getZ());
     }
 
     static class Serializer implements TypeSerializer<WorldTagAreaSquare> {
@@ -106,8 +129,8 @@ public class WorldTagAreaSquare extends WorldTagArea {
         public WorldTagAreaSquare deserialize(TypeToken<?> type, ConfigurationNode value)
                 throws ObjectMappingException {
             WorldTag worldTag = value.getNode("world_tag").getValue(TypeToken.of(WorldTag.class));
-            Vector3i minPos = value.getNode("min_position").getValue(TypeToken.of(Vector3i.class));
-            Vector3i maxPos = value.getNode("max_position").getValue(TypeToken.of(Vector3i.class));
+            Vector3d minPos = value.getNode("min_position").getValue(TypeToken.of(Vector3d.class));
+            Vector3d maxPos = value.getNode("max_position").getValue(TypeToken.of(Vector3d.class));
 
             WorldTagAreaSquare areaSquare = new WorldTagAreaSquare(worldTag, minPos, maxPos);
 
@@ -118,8 +141,8 @@ public class WorldTagAreaSquare extends WorldTagArea {
         public void serialize(TypeToken<?> type, WorldTagAreaSquare obj, ConfigurationNode value)
                 throws ObjectMappingException {
             value.getNode("world_tag").setValue(TypeToken.of(WorldTag.class), obj.worldTag);
-            value.getNode("min_position").setValue(TypeToken.of(Vector3i.class), obj.minPos);
-            value.getNode("max_position").getValue(TypeToken.of(Vector3i.class), obj.maxPos);
+            value.getNode("min_position").setValue(TypeToken.of(Vector3d.class), obj.minPos);
+            value.getNode("max_position").getValue(TypeToken.of(Vector3d.class), obj.maxPos);
         }
     }
 }

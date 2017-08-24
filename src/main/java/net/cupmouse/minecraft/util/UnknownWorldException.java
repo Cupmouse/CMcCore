@@ -1,6 +1,6 @@
 package net.cupmouse.minecraft.util;
 
-public class UnknownWorldException extends RuntimeException {
+public class UnknownWorldException extends Exception {
 
     public UnknownWorldException() {
     }

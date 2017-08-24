@@ -34,9 +34,17 @@ public abstract class WorldTagArea {
 
     public abstract BlockLocSequence getCornerBlocks();
 
-    public abstract WorldTagArea relativeBasePoint(Vector3i basePoint);
+    public abstract WorldTagArea worldTag(WorldTag worldTag);
 
-    public abstract WorldTagAreaSquare relativeTo(Vector3i basePoint);
+    public abstract WorldTagArea relativeBase(WorldTagLocation baseLocation);
+
+    public abstract WorldTagArea relativeBasePoint(Vector3d basePoint);
+
+    public abstract WorldTagArea relativeTo(WorldTagLocation baseLocation);
+
+    public abstract WorldTagArea relativeToPoint(Vector3d basePoint);
+
+
 
     static class Serializer implements TypeSerializer<WorldTagArea> {
 

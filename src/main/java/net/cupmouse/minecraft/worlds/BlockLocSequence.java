@@ -2,7 +2,6 @@ package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3i;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 

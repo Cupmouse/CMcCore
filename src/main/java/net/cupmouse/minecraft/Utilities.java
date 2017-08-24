@@ -1,13 +1,6 @@
 package net.cupmouse.minecraft;
 
-import com.flowpowered.math.vector.Vector3d;
-import ninja.leaping.configurate.ConfigurationNode;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
-
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class Utilities {

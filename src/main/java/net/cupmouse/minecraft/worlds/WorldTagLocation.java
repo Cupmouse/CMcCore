@@ -1,9 +1,7 @@
 package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.flowpowered.math.vector.Vector3i;
 import com.google.common.reflect.TypeToken;
-import net.cupmouse.minecraft.util.UnknownWorldException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
@@ -13,49 +11,61 @@ import org.spongepowered.api.world.World;
 
 import java.util.Optional;
 
-public class WorldTagLocation implements WorldTagPosition {
-
-    public final WorldTag worldTag;
-    public final Vector3d position;
+public class WorldTagLocation extends WorldTagPosition {
 
     public WorldTagLocation(WorldTag worldTag, Vector3d position) {
-        this.worldTag = worldTag;
-        this.position = position;
+        super(worldTag, position);
     }
 
     @Override
-    public boolean teleportHere(Entity entity) throws UnknownWorldException {
-        return entity.setLocation(convertSponge());
+    public WorldTagLocation worldTag(WorldTag worldTag) {
+        return new WorldTagLocation(worldTag, position);
     }
 
     @Override
-    public Location<World> convertSponge() throws UnknownWorldException {
-        Optional<World> taggedWorld = WorldTagModule.getTaggedWorld(worldTag);
-
-        if (!taggedWorld.isPresent()) {
-            throw new UnknownWorldException();
-        }
-
-        return new Location<World>(taggedWorld.get(), position);
+    public WorldTagPosition position(Vector3d position) {
+        return new WorldTagLocation(worldTag, position);
     }
 
     @Override
-    public WorldTag getWorldTag() {
-        return worldTag;
+    public WorldTagLocation relativeBase(WorldTagPosition basePosition) {
+        return (WorldTagLocation) super.relativeBase(basePosition);
     }
 
     @Override
-    public Vector3d getPosition() {
-        return position;
+    public WorldTagLocation relativeBasePoint(Vector3d basePoint) {
+        return (WorldTagLocation) super.relativeBasePoint(basePoint);
     }
 
     @Override
-    public WorldTagLocation relativeBasePoint(Vector3i basePoint) {
-        return new WorldTagLocation(worldTag, position.add(basePoint.toDouble()));
+    public WorldTagLocation relativeTo(WorldTagPosition basePosition) {
+        return (WorldTagLocation) super.relativeTo(basePosition);
     }
 
-    public WorldTagRocation convertRocation() {
-        return new WorldTagRocation(worldTag, position, Vector3d.ZERO);
+    @Override
+    public WorldTagLocation relativeToPoint(Vector3d basePoint) {
+        return (WorldTagLocation) super.relativeToPoint(basePoint);
+    }
+
+    public WorldTagRocation convertToRocation() {
+        return WorldTagRocation.fromTagAndPositionAndRotation(worldTag, position, Vector3d.ZERO);
+    }
+
+    public static WorldTagLocation fromTagAndPosition(WorldTag worldTag, Vector3d position) {
+        return new WorldTagLocation(worldTag, position);
+    }
+
+    public static Optional<WorldTagLocation> fromEntity(Entity entity) {
+        Location<World> location = entity.getLocation();
+
+        Optional<WorldTag> worldTagOptional = WorldTagModule.whatIsThisWorld(location.getExtent());
+        return worldTagOptional.flatMap(worldTag -> Optional.of(
+                new WorldTagLocation(worldTag, location.getPosition())));
+    }
+
+    public static Optional<WorldTagLocation> fromSponge(Location<World> spongeLocation) {
+        return WorldTagModule.whatIsThisWorld(spongeLocation.getExtent())
+                .map(worldTag -> new WorldTagLocation(worldTag, spongeLocation.getPosition()));
     }
 
     static class Serializer implements TypeSerializer<WorldTagLocation> {
