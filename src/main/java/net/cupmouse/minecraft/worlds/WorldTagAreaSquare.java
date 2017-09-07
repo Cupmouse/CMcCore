@@ -39,37 +39,46 @@ public class WorldTagAreaSquare extends WorldTagArea {
     public BlockLocSequence getOutlineBlocks() {
         ArrayList<Vector3i> blockLocs = new ArrayList<>();
 
-        int y = (int) minPos.getY();
+        int x, z;
 
         // 四角を書く
-        for (; y <= maxPos.getY(); y++) {
-            double x = minPos.getX(), z = minPos.getZ();
+        int minX = minPos.getFloorX();
+        int maxX = maxPos.getFloorX();
+        int minY = minPos.getFloorY();
+        int maxY = maxPos.getFloorY();
+        int minZ = minPos.getFloorZ();
+        int maxZ = maxPos.getFloorZ();
+
+        for (int y = minY; y <= maxY; y++) {
+            x = minX;
+            z = minZ;
 
             // FIXME
 
             // 下段と上段なら四角を描く
-            if (y == minPos.getY() || y == maxPos.getY()) {
-                for (; x <= maxPos.getX(); x++) {
+            if (y == minY || y == maxY) {
+                for (; x <= maxX; x++) {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
 
-                for (; z <= maxPos.getZ(); z++) {
+                for (; z <= maxZ; z++) {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
 
-                for (; z >= minPos.getZ(); z--) {
+                for (; x >= minX; x--) {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
 
-                for (; x >= minPos.getX(); x--) {
+                for (; z > minZ; z--) {
                     blockLocs.add(new Vector3i(x, y, z));
                 }
+
             } else {
                 // でないなら、横のフレームを作る。
-                blockLocs.add(new Vector3i(minPos.getX(), y, minPos.getZ()));
-                blockLocs.add(new Vector3i(maxPos.getX(), y, minPos.getZ()));
-                blockLocs.add(new Vector3i(minPos.getX(), y, maxPos.getZ()));
-                blockLocs.add(new Vector3i(maxPos.getX(), y, maxPos.getZ()));
+                blockLocs.add(new Vector3i(minX, y, minZ));
+                blockLocs.add(new Vector3i(maxX, y, minZ));
+                blockLocs.add(new Vector3i(minX, y, maxZ));
+                blockLocs.add(new Vector3i(maxX, y, maxZ));
             }
         }
 
@@ -79,14 +88,45 @@ public class WorldTagAreaSquare extends WorldTagArea {
     @Override
     public BlockLocSequence getCornerBlocks() {
         ArrayList<Vector3i> blockLocs = new ArrayList<>();
-        blockLocs.add(new Vector3i(minPos.getX(), minPos.getY(), minPos.getZ()));
-        blockLocs.add(new Vector3i(maxPos.getX(), minPos.getY(), minPos.getZ()));
-        blockLocs.add(new Vector3i(minPos.getX(), minPos.getY(), maxPos.getZ()));
-        blockLocs.add(new Vector3i(maxPos.getX(), minPos.getY(), maxPos.getZ()));
-        blockLocs.add(new Vector3i(minPos.getX(), maxPos.getY(), minPos.getZ()));
-        blockLocs.add(new Vector3i(maxPos.getX(), maxPos.getY(), minPos.getZ()));
-        blockLocs.add(new Vector3i(minPos.getX(), maxPos.getY(), maxPos.getZ()));
-        blockLocs.add(new Vector3i(maxPos.getX(), maxPos.getY(), maxPos.getZ()));
+        int minX = minPos.getFloorX();
+        int maxX = maxPos.getFloorX();
+
+        int minY = minPos.getFloorY();
+        int maxY = maxPos.getFloorY();
+
+        int minZ = minPos.getFloorZ();
+        int maxZ = maxPos.getFloorZ();
+
+        blockLocs.add(new Vector3i(minX, minY, minZ));
+        blockLocs.add(new Vector3i(maxX, minY, minZ));
+        blockLocs.add(new Vector3i(minX, minY, maxZ));
+        blockLocs.add(new Vector3i(maxX, minY, maxZ));
+        blockLocs.add(new Vector3i(minX, maxY, minZ));
+        blockLocs.add(new Vector3i(maxX, maxY, minZ));
+        blockLocs.add(new Vector3i(minX, maxY, maxZ));
+        blockLocs.add(new Vector3i(maxX, maxY, maxZ));
+
+        return new BlockLocSequence(worldTag, blockLocs);
+    }
+
+    @Override
+    public BlockLocSequence getEveryBlocks() {
+        ArrayList<Vector3i> blockLocs = new ArrayList<>();
+
+        int minX = minPos.getFloorX();
+        int maxX = maxPos.getFloorX();
+        int minY = minPos.getFloorY();
+        int maxY = maxPos.getFloorY();
+        int minZ = minPos.getFloorZ();
+        int maxZ = maxPos.getFloorZ();
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    blockLocs.add(new Vector3i(x, y, z));
+                }
+            }
+        }
 
         return new BlockLocSequence(worldTag, blockLocs);
     }
@@ -132,9 +172,7 @@ public class WorldTagAreaSquare extends WorldTagArea {
             Vector3d minPos = value.getNode("min_position").getValue(TypeToken.of(Vector3d.class));
             Vector3d maxPos = value.getNode("max_position").getValue(TypeToken.of(Vector3d.class));
 
-            WorldTagAreaSquare areaSquare = new WorldTagAreaSquare(worldTag, minPos, maxPos);
-
-            return areaSquare;
+            return new WorldTagAreaSquare(worldTag, minPos, maxPos);
         }
 
         @Override
@@ -142,7 +180,7 @@ public class WorldTagAreaSquare extends WorldTagArea {
                 throws ObjectMappingException {
             value.getNode("world_tag").setValue(TypeToken.of(WorldTag.class), obj.worldTag);
             value.getNode("min_position").setValue(TypeToken.of(Vector3d.class), obj.minPos);
-            value.getNode("max_position").getValue(TypeToken.of(Vector3d.class), obj.maxPos);
+            value.getNode("max_position").setValue(TypeToken.of(Vector3d.class), obj.maxPos);
         }
     }
 }

@@ -2,6 +2,7 @@ package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.Transform;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -17,14 +18,13 @@ public abstract class WorldTagPosition {
         this.position = position;
     }
 
-    public final boolean teleportHere(Entity entity) {
-        Optional<Location<World>> spongeLocationOptional = convertSponge();
-        return spongeLocationOptional.filter(entity::setLocation).isPresent();
-    }
+    public abstract boolean teleportHere(Entity entity);
 
-    public final Optional<Location<World>> convertSponge() {
+    public final Optional<Location<World>> convertToSpongeLocation() {
         return WorldTagModule.getTaggedWorld(worldTag).map(world -> new Location<>(world, position));
     }
+
+    public abstract Optional<Transform<World>> convertToTransform();
 
     public final WorldTag getWorldTag() {
         return worldTag;
@@ -65,5 +65,4 @@ public abstract class WorldTagPosition {
     public WorldTagPosition relativeToPoint(Vector3d basePoint) {
         return position(position.sub(basePoint));
     }
-
 }

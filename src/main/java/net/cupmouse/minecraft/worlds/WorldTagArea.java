@@ -1,7 +1,6 @@
 package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.flowpowered.math.vector.Vector3i;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -33,6 +32,9 @@ public abstract class WorldTagArea {
     public abstract BlockLocSequence getOutlineBlocks();
 
     public abstract BlockLocSequence getCornerBlocks();
+
+    public abstract BlockLocSequence getEveryBlocks();
+
 
     public abstract WorldTagArea worldTag(WorldTag worldTag);
 
@@ -71,6 +73,8 @@ public abstract class WorldTagArea {
                 throws ObjectMappingException {
 
             if (obj instanceof WorldTagAreaSquare) {
+                value.getNode("shape").setValue("square");
+
                 TypeSerializers.getDefaultSerializers().get(TypeToken.of(WorldTagAreaSquare.class))
                         .serialize(type, (WorldTagAreaSquare) obj, value);
             } else {

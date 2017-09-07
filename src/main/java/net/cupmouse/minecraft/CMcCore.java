@@ -1,5 +1,6 @@
 package net.cupmouse.minecraft;
 
+import net.cupmouse.minecraft.cmd.CmdWorldTeleport;
 import net.cupmouse.minecraft.data.user.UserDataModule;
 import net.cupmouse.minecraft.db.DatabaseModule;
 import net.cupmouse.minecraft.util.ModuleNotLoadedException;
@@ -12,6 +13,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.plugin.PluginContainer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +26,7 @@ import java.util.TimeZone;
 public class CMcCore {
 
     private static Object plugin;
+    private static PluginContainer pluginContainer;
     private static Logger logger;
     private static Path configDir;
     private final Path configCommon;
@@ -34,8 +37,10 @@ public class CMcCore {
     private static UserDataModule userm;
     private static DatabaseModule dbm;
 
-    public CMcCore(Object plugin, Logger logger, Path configDir, PluginModule[] moduleArray) {
+    public CMcCore(Object plugin, PluginContainer pluginContainer,
+                   Logger logger, Path configDir, PluginModule[] moduleArray) {
         CMcCore.plugin = plugin;
+        CMcCore.pluginContainer = pluginContainer;
         CMcCore.logger = logger;
         CMcCore.configDir = configDir;
         this.configCommon = configDir.resolve("common.conf");
@@ -57,6 +62,10 @@ public class CMcCore {
 
     public static Object getPlugin() {
         return plugin;
+    }
+
+    public static PluginContainer getPluginContainer() {
+        return pluginContainer;
     }
 
     public static DatabaseModule getDbm() {
@@ -165,6 +174,8 @@ public class CMcCore {
                 stopEternally();
             }
         }
+
+        Sponge.getCommandManager().register(CMcCore.getPlugin(), CmdWorldTeleport.CALLABLE, "wtp");
     }
 
     // Handling running state event

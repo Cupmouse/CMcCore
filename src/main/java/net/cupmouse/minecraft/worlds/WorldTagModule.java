@@ -21,7 +21,7 @@ import java.util.UUID;
 public class WorldTagModule implements PluginModule {
 
     private static Map<UUID, WorldTag> uuidTagMap = new HashMap<>();
-    private static Map<WorldTag, World> tagWorldMap = new HashMap<>();
+    private static Map<WorldTag, UUID> tagWorldMap = new HashMap<>();
 
     @Override
     public void onPreInitializationProxy() throws Exception {
@@ -52,8 +52,6 @@ public class WorldTagModule implements PluginModule {
 
     @Override
     public void onServerStartingProxy() {
-
-
         // ワールド関連付けのチェック
         if (tagWorldMap.size() != uuidTagMap.size()) {
             CMcCore.getLogger().warn(
@@ -69,7 +67,7 @@ public class WorldTagModule implements PluginModule {
 
         if (uuidTagMap.containsKey(uniqueId)) {
             WorldTag worldTag = uuidTagMap.get(uniqueId);
-            tagWorldMap.put(worldTag, targetWorld);
+            tagWorldMap.put(worldTag, targetWorld.getUniqueId());
 
             CMcCore.getLogger().info(
                     "ワールドが読み込まれ、次のように関連付けられました　" + uniqueId + " / " + worldTag);
@@ -101,9 +99,13 @@ public class WorldTagModule implements PluginModule {
      * @return
      */
     public static boolean isThis(WorldTag tag, World world) {
-        World worldTagged = tagWorldMap.get(tag);
+        return isThis(tag, world.getUniqueId());
+    }
 
-        return worldTagged != null && worldTagged == world;
+    public static boolean isThis(WorldTag tag, UUID worldUUID) {
+        UUID worldTagged = tagWorldMap.get(tag);
+
+        return worldTagged != null && worldTagged.equals(worldUUID);
     }
 
     /**
@@ -113,6 +115,12 @@ public class WorldTagModule implements PluginModule {
      * @return
      */
     public static Optional<World> getTaggedWorld(WorldTag tag) {
-        return Optional.ofNullable(tagWorldMap.get(tag));
+        UUID uuid = tagWorldMap.get(tag);
+
+        if (uuid == null) {
+            return Optional.empty();
+        }
+
+        return Sponge.getServer().getWorld(uuid);
     }
 }

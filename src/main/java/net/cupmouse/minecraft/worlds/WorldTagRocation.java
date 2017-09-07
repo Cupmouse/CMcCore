@@ -1,13 +1,12 @@
 package net.cupmouse.minecraft.worlds;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.flowpowered.math.vector.Vector3i;
 import com.google.common.reflect.TypeToken;
-import net.cupmouse.minecraft.util.UnknownWorldException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.Transform;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -24,6 +23,20 @@ public final class WorldTagRocation extends WorldTagPosition {
 
     public WorldTagLocation convertToLocation() {
         return WorldTagLocation.fromTagAndPosition(worldTag, position);
+    }
+
+    @Override
+    public boolean teleportHere(Entity entity) {
+        return convertToSpongeLocation()
+                .filter(worldLocation -> entity.setLocationAndRotation(worldLocation, rotation))
+                .isPresent();
+    }
+
+    @Override
+    public Optional<Transform<World>> convertToTransform() {
+        Optional<World> taggedWorld = WorldTagModule.getTaggedWorld(worldTag);
+
+        return taggedWorld.map(world -> new Transform<>(world, position, rotation));
     }
 
     @Override
