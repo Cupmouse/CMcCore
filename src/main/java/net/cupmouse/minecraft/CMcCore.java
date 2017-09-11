@@ -93,15 +93,15 @@ public class CMcCore {
     public static void stopEternally() {
         // スレッドを永遠とスリープさせる。致命的なエラーが有った場合に呼ぶ。
 
-//        while (true) {
-//            try {
-//                Thread.sleep(2^31);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//
-//            // TODO 適切な通知を行う
-//        }
+        while (true) {
+            try {
+                Thread.sleep(2^31);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // TODO 適切な通知を行う
+        }
     }
 
     // Handling initialization state events
@@ -114,9 +114,9 @@ public class CMcCore {
 
         // サーバーの設定が正常がチェックする
         // TODO このチェックアホくさい
-        if (!TimeZone.getDefault().getID().equals(TimeZone.getTimeZone("Asia/Tokyo").getID())) {
+        if (!TimeZone.getDefault().getID().equals(TimeZone.getTimeZone("UTC").getID())) {
             // ローカルの時間地域設定がおかしい
-            logger.error("時間地域を[Asia/Tokyo]に設定してください");
+            logger.error("時間地域を[UTC]に設定してください");
             stopEternally();
         }
 
@@ -253,16 +253,5 @@ public class CMcCore {
     public void onStopped(GameStoppedEvent event) {
         // called immediate before closing java
         logger.debug("GameStopped");
-    }
-
-    // ここから普通
-
-    @Listener(order = Order.DEFAULT)
-    public void onLogin(ClientConnectionEvent.Join event) {
-        Player targetEntity = event.getTargetEntity();
-
-//        DataTransactionResult cupmouse = targetEntity.offer(Keys.DISPLAY_NAME, Text.of("Cupmouse"));
-//        logger.info(cupmouse.toString());
-//        logger.info(targetEntity.get(Keys.DISPLAY_NAME).get().toString());
     }
 }
