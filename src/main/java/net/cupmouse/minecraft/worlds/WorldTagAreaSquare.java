@@ -30,9 +30,21 @@ public class WorldTagAreaSquare extends WorldTagArea {
 
     @Override
     public boolean isInArea(Vector3d position) {
-        return (position.getX() >= minPos.getX() && position.getX() <= maxPos.getX())
-                && (position.getY() >= minPos.getY() && position.getX() <= maxPos.getY())
-                && (position.getZ() >= minPos.getZ() && position.getZ() <= maxPos.getZ());
+        return isInArea(position.getX(), position.getY(), position.getZ());
+    }
+
+    @Override
+    public boolean isInArea(double x, double y, double z) {
+        return (x >= minPos.getX() && x <= maxPos.getX())
+                && (y >= minPos.getY() && y <= maxPos.getY())
+                && (z >= minPos.getZ() && z <= maxPos.getZ());
+    }
+
+    @Override
+    public boolean isInArea(int x, int y, int z) {
+        return (x >= minPos.getX() && x <= maxPos.getX())
+                && (y >= minPos.getY() && y <= maxPos.getY())
+                && (z >= minPos.getZ() && z <= maxPos.getZ());
     }
 
     @Override

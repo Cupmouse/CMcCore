@@ -29,6 +29,10 @@ public abstract class WorldTagArea {
      */
     public abstract boolean isInArea(Vector3d position);
 
+    public abstract boolean isInArea(int x, int y, int z);
+
+    public abstract boolean isInArea(double x, double y, double z);
+
     public abstract BlockLocSequence getOutlineBlocks();
 
     public abstract BlockLocSequence getCornerBlocks();
