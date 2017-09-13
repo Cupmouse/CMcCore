@@ -117,7 +117,6 @@ public class CMcCore {
         if (!TimeZone.getDefault().getID().equals(TimeZone.getTimeZone("UTC").getID())) {
             // ローカルの時間地域設定がおかしい
             logger.error("時間地域を[UTC]に設定してください");
-            stopEternally();
         }
 
         // 設定の読み込み
