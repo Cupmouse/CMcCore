@@ -50,6 +50,7 @@ public abstract class WorldTagArea {
 
     public abstract WorldTagArea relativeToPoint(Vector3d basePoint);
 
+    public abstract WorldTagAreaSquare shift(double x, double y, double z);
 
 
     static class Serializer implements TypeSerializer<WorldTagArea> {

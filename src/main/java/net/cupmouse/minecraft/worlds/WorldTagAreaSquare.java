@@ -170,6 +170,11 @@ public class WorldTagAreaSquare extends WorldTagArea {
         return new WorldTagAreaSquare(worldTag, minPos.sub(basePoint), maxPos.sub(basePoint));
     }
 
+    @Override
+    public WorldTagAreaSquare shift(double x, double y, double z) {
+        return new WorldTagAreaSquare(worldTag, minPos.add(x, y, z), maxPos.add(x, y, z));
+    }
+
     public static WorldTagAreaSquare fromWorldTagAndPositions(WorldTag worldTag, Vector3d pos1, Vector3d pos2) {
         return new WorldTagAreaSquare(worldTag,
                 pos1.getX(), pos1.getY(), pos1.getZ(), pos2.getX(), pos2.getY(), pos2.getZ());
